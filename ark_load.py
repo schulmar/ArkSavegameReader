@@ -29,6 +29,8 @@ class ARK_savegame_reader:
 		if self.debug:
 			print("Reading region {0}".format(cell_name))
 		number_of_entry_batches = self.readUint32()
+		# so far only encountered 0 and 1
+		assert(number_of_entry_batches <= 1)
 		for entry_batch_index in range(number_of_entry_batches):
 			number_of_entries = self.readUint32()
 			for i in range(number_of_entries):
@@ -46,7 +48,14 @@ class ARK_savegame_reader:
 		numberOfCells = self.readUint32()
 		cells = [self.readRegion() for i in range(numberOfCells)]	
 		print(cells)
-		print(self.f.read(16))
+		alwaysZero = self.readUint32()
+		# so far only encountered 0
+		assert(alwaysZero == 0)
+		changingNumber = self.readUint32()
+		gibberish = self.f.read(16)
+		assert(gibberish == b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
+		print(self.readString()) 
+		
 
 if len(sys.argv) < 1:
 	print("Call {0} <path-to-savefile>".format(sys.argv[0]))
