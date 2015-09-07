@@ -13,16 +13,29 @@ class ARK_savegame_reader:
 		uint_bytes = self.f.read(4)
 		return struct.unpack('I', uint_bytes)[0]
 
+	def peekUint32(self):
+		pos = self.f.tell()
+		uint = self.readUint32()
+		self.seek(pos)
+		return uint
+
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
 		return self.f.read(size * size_multiplier)
 
 	def readString(self):
-		string = self.readEntry()
+		string = self.readEntry()[:-1] # omit trailing null terminator
 		try:
 			return string.decode('utf-8')
 		except:
 			return string
+
+	def peekString(self):
+		pos = self.f.tell()
+		string = self.readString()
+		self.f.seek(pos)
+		return string
+
 
 	def readRegion(self):
 		cell_name = self.readString()
@@ -38,8 +51,170 @@ class ARK_savegame_reader:
 				if self.debug:
 					print('Read entry of size {0}'.format(len(entry)))
 		return cell_name
+
+	def readUint32_equals(self, expected_value):
+		read_value = self.readUint32()
+		assert read_value == expected_value, '{0} == {1}'.format(read_value, expected_value)
+
+	def readBytes_equals(self, expected_value):
+		read_value = self.f.read(len(expected_value))
+		assert read_value == expected_value, '{0} == {1}'.format(read_value, expected_value)
+
+	def readString_equals(self, expected_value):
+		read_value = self.readString()
+		assert read_value == expected_value, '"{0}" == "{1}"'.format(read_value, expected_value)
+
+	def read_ShooterGameState(self):
+		self.readString_equals('ShooterGameState')
+		self.readUint32_equals(0)
+		number_of_game_states = self.readUint32()
+		# so far only encountered 1 here
+		assert(number_of_game_states == 1)
+		for i in range(number_of_game_states):
+			self.readString_equals('ShooterGameState_{0}'.format(i))
+			self.f.read(9 * 4)
+
+	def read_InstancedFoliageActor(self):
+		self.readString_equals('InstancedFoliageActor')
+		self.readUint32_equals(0)
+		number_of_actors = self.readUint32()
+		# only encountered value 1
+		assert(number_of_actors == 1)
+		for i in range(number_of_actors):
+			self.readString_equals('InstancedFoliageActor_{0}'.format(i))
+			self.f.read(15 * 4)
+
+	def read_MatineeActor(self):
+		self.readString_equals('MatineeActor')
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		self.readString_equals('Matinee_DayTime')
+		self.f.read(15*4)
+
+	def read_DinoCharacterStatusComponent_BP_X_C(self, X):
+		fixup = {'Megalodon':'Mega'}
+		if X in fixup:
+			X = fixup[X]
+		if X == 'Coel':
+			self.readString_equals('DinoCharacterStatusComponent_BP_C'.format(X))
+			self.readUint32_equals(0)
+			self.readUint32_equals(2)
+			s = self.readString()
+			assert s.startswith('DinoCharacterStatus_BP_C'.format(X)), s
+		else:
+			self.readString_equals('DinoCharacterStatusComponent_BP_{0}_C'.format(X))
+			self.readUint32_equals(0)
+			self.readUint32_equals(2)
+			s = self.readString()
+			fixup = {'Ankylo':'Anklyo', }
+			if X in fixup:
+				X = fixup[X]
+			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), s
 			
+		
+	def read_X_Character_BP_C(self):
+		character = self.readString()
+		dino = character.split('_')[0]
+		self.readUint32_equals(0)
+		number = self.readUint32()
+		indexed = self.readString() #
+		index = int(indexed.split('_')[-1])
+		self.f.read(15 * 4)
+		self.read_DinoCharacterStatusComponent_BP_X_C(dino)
+		self.readString_equals(indexed)
+		self.f.read(9 * 4)
+		return (dino, index)
 	
+	def read_X_Character_C(self):
+		character = self.readString()
+		dino = character.split('_')[0]
+		self.readUint32_equals(0)
+		number = self.readUint32()
+		indexed = self.readString() #
+		index = int(indexed.split('_')[-1])
+		self.f.read(15 * 4)
+		self.read_DinoCharacterStatusComponent_BP_X_C(dino)
+		self.readString_equals(indexed)
+		self.f.read(9 * 4)
+		return (dino, index)
+
+
+	def read_DinoTamedInventoryComponent_X_C(self):
+		character = self.readString()
+		dino = character.split('_')[1]
+		self.readUint32_equals(0)
+		self.readUint32_equals(2)
+		self.readString_equals(character+'_0')
+		dino_name_index = self.readString()
+		self.f.read(9 * 4)
+		return (dino_name_index, 'TamedInventory')
+
+	def read_PrimalItemConsumable_RawMeat_C(self):
+		character = 'PrimalItemConsumable_RawMeat_C'
+		self.readString_equals(character)
+		self.readUint32_equals(1)
+		self.readUint32_equals(1)
+		indexed = self.readString()
+		index = int(indexed.split('_')[-1])
+		assert indexed.startswith(character), indexed
+		self.f.read(9 * 4)
+		return ('RawMeat', index)
+
+	def read_PrimalItemArmor_X_C(self):
+		character = self.readString()
+		item_name = character.split('_')[1]
+		self.readUint32_equals(1)
+		self.readUint32_equals(1)
+		indexed = self.readString()
+		index = int(indexed.split('_')[-1])
+		assert indexed.startswith(character), indexed
+		self.f.read(9 * 4)
+		return (item_name, index)
+
+	def read_Campfire_C(self):
+		character = 'Campfire_C'
+		self.readString_equals(character)
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		indexed = self.readString()
+		index = int(indexed.split('_')[-1])
+		assert indexed.startswith(character), indexed
+		self.f.read(15 * 4)
+		return ('campfire', index)
+
+	def read_PrimalInventoryBP_Campfire_C(self):
+		character = 'PrimalInventoryBP_Campfire_C'
+		self.readString_equals(character)
+		self.readUint32_equals(0)
+		self.readUint32_equals(2)
+		self.readString_equals(character + '1')
+		indexed = self.readString()
+		index = int(indexed.split('_')[-1])
+		assert indexed.startswith('Campfire_C'), indexed
+		self.f.read(9 * 4)
+		return ('campfire inventory', index)
+
+
+	def read_Component(self):
+		string = self.peekString()
+		if string.endswith('_Character_BP_C'):
+			return self.read_X_Character_BP_C()
+		elif string.endswith('_Character_C'):
+			return self.read_X_Character_C()
+		elif string.startswith('DinoTamedInventoryComponent_'):
+			return self.read_DinoTamedInventoryComponent_X_C()
+		elif string.startswith('PrimalItemConsumable_RawMeat_C'):
+			return self.read_PrimalItemConsumable_RawMeat_C()
+		elif string.startswith('PrimalItemArmor_'):
+			return self.read_PrimalItemArmor_X_C()
+		elif string.startswith('Campfire_C'):
+			return self.read_Campfire_C()
+		elif string.startswith('PrimalInventoryBP_Campfire_C'):
+			return self.read_PrimalInventoryBP_Campfire_C()
+		else:
+			assert not "Unknown component", string
+		
+
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
@@ -48,14 +223,28 @@ class ARK_savegame_reader:
 		numberOfCells = self.readUint32()
 		cells = [self.readRegion() for i in range(numberOfCells)]	
 		print(cells)
-		alwaysZero = self.readUint32()
-		# so far only encountered 0
-		assert(alwaysZero == 0)
+		self.readUint32_equals(0)
 		changingNumber = self.readUint32()
-		gibberish = self.f.read(16)
-		assert(gibberish == b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
-		print(self.readString()) 
-		
+		print(changingNumber)
+		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
+		#761fc
+		mod_name = self.readString()
+		print(mod_name)
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		propertyName = self.readString()
+		print(propertyName)
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		self.readBytes_equals(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+		self.read_ShooterGameState()
+		self.read_InstancedFoliageActor()
+		self.read_MatineeActor()
+		self.read_ShooterGameState()
+		for i in range(100000):
+			print(self.read_Component())
+
 
 if len(sys.argv) < 1:
 	print("Call {0} <path-to-savefile>".format(sys.argv[0]))
