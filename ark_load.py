@@ -8,6 +8,13 @@ class ARK_savegame_reader:
 	def __init__(self, file_name, debug=False):
 		self.f = open(file_name, 'rb')
 		self.debug = debug
+		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_Thatch_Floor_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
+		self.read_Thatch_Wall_Small_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
+		self.read_Campfire_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+		self.read_PrimalItemArmor_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_LadderBP_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
 
 	def readUint32(self):
 		uint_bytes = self.f.read(4)
@@ -63,6 +70,21 @@ class ARK_savegame_reader:
 	def readString_equals(self, expected_value):
 		read_value = self.readString()
 		assert read_value == expected_value, '"{0}" == "{1}"'.format(read_value, expected_value)
+
+	def read_regular_indexed(self, expected_value_of_first_uint, 
+					expected_value_of_second_uint,
+			   		descriptor_index,
+					number_of_trailing_words):
+		character = self.readString()
+		descriptor = character.split('_')[descriptor_index]
+		self.readUint32_equals(expected_value_of_first_uint)
+		self.readUint32_equals(expected_value_of_second_uint)
+		indexed = self.readString()
+		index = int(indexed.split('_')[-1])
+		self.f.read(number_of_trailing_words * 4)
+		return (descriptor, index)
+
+		
 
 	def read_ShooterGameState(self):
 		self.readString_equals('ShooterGameState')
@@ -149,38 +171,6 @@ class ARK_savegame_reader:
 		self.f.read(9 * 4)
 		return (dino_name_index, 'TamedInventory')
 
-	def read_PrimalItemConsumable_RawMeat_C(self):
-		character = 'PrimalItemConsumable_RawMeat_C'
-		self.readString_equals(character)
-		self.readUint32_equals(1)
-		self.readUint32_equals(1)
-		indexed = self.readString()
-		index = int(indexed.split('_')[-1])
-		assert indexed.startswith(character), indexed
-		self.f.read(9 * 4)
-		return ('RawMeat', index)
-
-	def read_PrimalItemArmor_X_C(self):
-		character = self.readString()
-		item_name = character.split('_')[1]
-		self.readUint32_equals(1)
-		self.readUint32_equals(1)
-		indexed = self.readString()
-		index = int(indexed.split('_')[-1])
-		assert indexed.startswith(character), indexed
-		self.f.read(9 * 4)
-		return (item_name, index)
-
-	def read_Campfire_C(self):
-		character = 'Campfire_C'
-		self.readString_equals(character)
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		indexed = self.readString()
-		index = int(indexed.split('_')[-1])
-		assert indexed.startswith(character), indexed
-		self.f.read(15 * 4)
-		return ('campfire', index)
 
 	def read_PrimalInventoryBP_Campfire_C(self):
 		character = 'PrimalInventoryBP_Campfire_C'
@@ -195,22 +185,20 @@ class ARK_savegame_reader:
 		return ('campfire inventory', index)
 
 
+	def get_Component_read_function(self, string):
+		read_Function = getattr(self, 'read_' + string, None)
+		if not read_Function:
+			read_Function = getattr(self, 'read_' + string.split('_')[0] + '_X_C', None)
+		if not read_Function:
+			read_Function = getattr(self, 'read_X_' + '_'.join(string.split('_')[1:]), None)
+		if read_Function:
+			return read_Function
+
 	def read_Component(self):
 		string = self.peekString()
-		if string.endswith('_Character_BP_C'):
-			return self.read_X_Character_BP_C()
-		elif string.endswith('_Character_C'):
-			return self.read_X_Character_C()
-		elif string.startswith('DinoTamedInventoryComponent_'):
-			return self.read_DinoTamedInventoryComponent_X_C()
-		elif string.startswith('PrimalItemConsumable_RawMeat_C'):
-			return self.read_PrimalItemConsumable_RawMeat_C()
-		elif string.startswith('PrimalItemArmor_'):
-			return self.read_PrimalItemArmor_X_C()
-		elif string.startswith('Campfire_C'):
-			return self.read_Campfire_C()
-		elif string.startswith('PrimalInventoryBP_Campfire_C'):
-			return self.read_PrimalInventoryBP_Campfire_C()
+		read_Function = self.get_Component_read_function(string)
+		if read_Function:
+			return read_Function()
 		else:
 			assert not "Unknown component", string
 		
