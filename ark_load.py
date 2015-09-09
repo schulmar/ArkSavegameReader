@@ -9,12 +9,27 @@ class ARK_savegame_reader:
 		self.f = open(file_name, 'rb')
 		self.debug = debug
 		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_Thatch_Floor_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
-		self.read_Thatch_Wall_Small_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
+		#self.read_Thatch_Floor_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
+		#self.read_Thatch_Wall_Small_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
 		self.read_Campfire_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
 		self.read_PrimalItemArmor_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_LadderBP_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
+		self.read_StorageBox_Large_C = lambda: self.read_regular_indexed(0, 1, [0,1], 15)
+		self.read_SimpleBed_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+		self.read_StandingTorch_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+		self.read_Wall_Wood_Small_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+		self.read_Ceiling_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+		self.read_StorageBox_AnvilBench_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+		self.read_FenceFoundation_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+		self.read_WindowWall_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+	def peekBytes(self, number):
+		pos = self.f.tell()
+		result = self.f.read(number)
+		self.f.seek(pos)
+		return result 
+
 
 	def readUint32(self):
 		uint_bytes = self.f.read(4)
@@ -29,6 +44,12 @@ class ARK_savegame_reader:
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
 		return self.f.read(size * size_multiplier)
+
+	def peekEntry(self, size_multiplier = 1):
+		pos = self.tell()
+		result = self.readEntry(size_multiplier)
+		self.seek(pos)
+		return result
 
 	def readString(self):
 		string = self.readEntry()[:-1] # omit trailing null terminator
@@ -76,7 +97,11 @@ class ARK_savegame_reader:
 			   		descriptor_index,
 					number_of_trailing_words):
 		character = self.readString()
-		descriptor = character.split('_')[descriptor_index]
+		if isinstance(descriptor_index, list):
+			split = character.split('_')
+			descriptor = ' '.join([split[i] for i in descriptor_index])
+		else:
+			descriptor = character.split('_')[descriptor_index]
 		self.readUint32_equals(expected_value_of_first_uint)
 		self.readUint32_equals(expected_value_of_second_uint)
 		indexed = self.readString()
@@ -172,21 +197,29 @@ class ARK_savegame_reader:
 		return (dino_name_index, 'TamedInventory')
 
 
-	def read_PrimalInventoryBP_Campfire_C(self):
-		character = 'PrimalInventoryBP_Campfire_C'
-		self.readString_equals(character)
+	def read_PrimalInventoryBP_X_C(self):
+		character = self.readString()
+		name = ' '.join(character.split('_')[1:-1])
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
-		self.readString_equals(character + '1')
+		C1_string = self.readString()
+		assert C1_string.startswith(character + '1')
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
-		assert indexed.startswith('Campfire_C'), indexed
+		assert indexed.startswith('_'.join(character.split('_')[1:])), indexed
 		self.f.read(9 * 4)
-		return ('campfire inventory', index)
+		return (name, index)
 
+	def read_Thatch_X_C(self):
+		return self.read_regular_indexed(0, 1, [0, 1], 15)
+				
+	def read_X_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
 
 	def get_Component_read_function(self, string):
 		read_Function = getattr(self, 'read_' + string, None)
+		if not read_Function and len(string.split('_')) == 2:
+			read_Function = self.read_X_C
 		if not read_Function:
 			read_Function = getattr(self, 'read_' + string.split('_')[0] + '_X_C', None)
 		if not read_Function:
@@ -194,12 +227,48 @@ class ARK_savegame_reader:
 		if read_Function:
 			return read_Function
 
+	def is_at_string_begin(self, max_string_length = 1000):
+		pos = self.f.tell()
+		length = self.readUint32()
+		is_valid_string = False
+		if 0 < length <= max_string_length:
+			self.f.seek(length - 1, 1)
+			nullterminator = self.f.read(1)
+			is_valid_string = (nullterminator == b'\x00')
+		self.f.seek(pos)
+		string = self.peekString()
+		return is_valid_string and isinstance(string, str)
+
+	def get_regular_indexed_parameter(self, string_c):
+		self.readString_equals(string_c)
+		first_number = self.readUint32()
+		second_number = self.readUint32()
+		if not self.is_at_string_begin():
+			return (string_c, 'no string at indexed string position')
+		indexed = self.readString()
+		if not indexed.startswith(string_c):
+			return (string_c, 'no indexed string', indexed)
+		pos = self.f.tell()
+		# seek for the next string in word steps
+		for i in range(20):
+			if self.is_at_string_begin():
+				length = i
+				break
+			self.f.seek(4,1)
+		if not self.is_at_string_begin():
+			return (string_c, 'no following string')
+		next_string = self.readString()
+		if next_string and next_string.endswith('_C'):
+			return 'self.read_{2} = lambda: self.read_regular_indexed({0}, {1}, {2}, {3})'.format(first_number, second_number, string_c, length)
+		return (string_c, 'following string is no _C string')
+
 	def read_Component(self):
 		string = self.peekString()
 		read_Function = self.get_Component_read_function(string)
 		if read_Function:
 			return read_Function()
 		else:
+			string = self.get_regular_indexed_parameter(string)
 			assert not "Unknown component", string
 		
 
