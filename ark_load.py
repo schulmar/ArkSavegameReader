@@ -8,20 +8,48 @@ class ARK_savegame_reader:
 	def __init__(self, file_name, debug=False):
 		self.f = open(file_name, 'rb')
 		self.debug = debug
-		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		#self.read_Thatch_Floor_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
-		#self.read_Thatch_Wall_Small_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
-		self.read_Campfire_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+
+		self.read_Ceiling_Door_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 0, 1], 15)
+		self.read_Ceiling_Doorway_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 0, 1], 15)
+		self.read_Ceiling_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_CropPlotMedium_SM_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+
+		self.read_Door_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [0, 1], 15)		
+		self.read_Doorframe_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_FenceFoundation_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_Floor_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_Gate_SM_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+
+		self.read_GateFrame_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_Pillar_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_PlayerPawnTest_Female_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_PrimalItem_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemAmmo_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemArmor_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_LadderBP_C = lambda: self.read_regular_indexed(0, 1, 1, 15)
-		self.read_StorageBox_Large_C = lambda: self.read_regular_indexed(0, 1, [0,1], 15)
-		self.read_SimpleBed_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
-		self.read_StandingTorch_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
+		self.read_PrimalItemConsumableBuff_Parachute_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemConsumableMiracleGro_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
+		self.read_PrimalItemRadio_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
+		self.read_PrimalItemResource_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemSkin_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemWeaponAttachment_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+		self.read_PrimalItemStructure_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
+
+		self.read_Ramp_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_StorageBox_X_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
 		self.read_Wall_Wood_Small_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-		self.read_Ceiling_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-		self.read_StorageBox_AnvilBench_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-		self.read_FenceFoundation_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
+		self.read_WeapFists_Female_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+
 		self.read_WindowWall_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
 
 	def peekBytes(self, number):
@@ -191,7 +219,8 @@ class ARK_savegame_reader:
 		dino = character.split('_')[1]
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
-		self.readString_equals(character+'_0')
+		inventory_indexed = self.readString()
+		assert inventory_indexed.startswith((character)), (inventory_indexed, character)
 		dino_name_index = self.readString()
 		self.f.read(9 * 4)
 		return (dino_name_index, 'TamedInventory')
@@ -206,7 +235,12 @@ class ARK_savegame_reader:
 		assert C1_string.startswith(character + '1')
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
-		assert indexed.startswith('_'.join(character.split('_')[1:])), indexed
+		expected_indexed = '_'.join(character.split('_')[1:])
+		translation = {'AnvilBench_C' : 'StorageBox_AnvilBench_C',
+				'CropPlot_Medium_C' : 'CropPlotMedium_SM_C' }
+		if expected_indexed in translation:
+			expected_indexed = translation[expected_indexed]
+		assert indexed.startswith(expected_indexed), (indexed, expected_indexed)
 		self.f.read(9 * 4)
 		return (name, index)
 
@@ -215,6 +249,21 @@ class ARK_savegame_reader:
 				
 	def read_X_C(self):
 		return self.read_regular_indexed(0, 1, 0, 15)
+
+	def read_PlayerCharacterStatusComponent_BP_C(self):
+		self.readString_equals('PlayerCharacterStatusComponent_BP_C')
+		self.readUint32_equals(0)
+		self.readUint32_equals(2)
+		self.readString_equals('PlayerCharacterStatus')
+		string = self.readString()
+		string.startswith('PlayerPawnTest_')
+		self.f.read(9 * 4)
+		self.readString_equals('PrimalInventoryComponent')
+		self.readUint32_equals(0)
+		self.readUint32_equals(2)
+		self.readString_equals('PrimalInventory1')
+		self.readString_equals(string)
+		self.f.read(9*4)
 
 	def get_Component_read_function(self, string):
 		read_Function = getattr(self, 'read_' + string, None)
