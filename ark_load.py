@@ -36,6 +36,7 @@ class ARK_savegame_reader:
 		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemConsumableBuff_Parachute_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemConsumableMiracleGro_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
+		self.read_PrimalItemDye_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemRadio_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
 		self.read_PrimalItemResource_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
 		self.read_PrimalItemSkin_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
@@ -47,6 +48,8 @@ class ARK_savegame_reader:
 		self.read_StorageBox_X_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
 
 		self.read_Wall_Wood_Small_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+
+		self.read_WaterPipe_X_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 
 		self.read_WeapFists_Female_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
 
@@ -237,7 +240,9 @@ class ARK_savegame_reader:
 		index = int(indexed.split('_')[-1])
 		expected_indexed = '_'.join(character.split('_')[1:])
 		translation = {'AnvilBench_C' : 'StorageBox_AnvilBench_C',
-				'CropPlot_Medium_C' : 'CropPlotMedium_SM_C' }
+				'CropPlot_Medium_C' : 'CropPlotMedium_SM_C',
+				'WaterTank_C' : 'WaterTankBaseBP_C',
+				'Tap_C' : 'WaterTap_C_3' }
 		if expected_indexed in translation:
 			expected_indexed = translation[expected_indexed]
 		assert indexed.startswith(expected_indexed), (indexed, expected_indexed)
