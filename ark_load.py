@@ -6,54 +6,82 @@ class ARK_savegame_reader:
 	START_OFFSET = 6
 
 	def __init__(self, file_name, debug=False):
-		self.f = open(file_name, 'rb')
+		self.f = open(file_name, 'rb') if file_name else None
 		self.debug = debug
-
-		self.read_Ceiling_Door_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 0, 1], 15)
-		self.read_Ceiling_Doorway_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 0, 1], 15)
-		self.read_Ceiling_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_CropPlotMedium_SM_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
-
-		self.read_Door_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [0, 1], 15)		
-		self.read_Doorframe_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_FenceFoundation_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_Floor_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_Gate_SM_C = lambda: self.read_regular_indexed(0, 1, 0, 15)
-
-		self.read_GateFrame_Wood_SM_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_Pillar_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_PlayerPawnTest_Female_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_PrimalItem_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemAmmo_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemArmor_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemConsumable_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemConsumableBuff_Parachute_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemConsumableMiracleGro_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
-		self.read_PrimalItemDye_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemRadio_C = lambda: self.read_regular_indexed(1, 1, 0, 9)
-		self.read_PrimalItemResource_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemSkin_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemWeaponAttachment_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-		self.read_PrimalItemStructure_X_C = lambda: self.read_regular_indexed(1, 1, 1, 9)
-
-		self.read_Ramp_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_StorageBox_X_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_Wall_Wood_Small_SM_New_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-
-		self.read_WaterPipe_X_C = lambda: self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-
-		self.read_WeapFists_Female_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
-
-		self.read_WindowWall_Wood_SM_New_C = lambda: self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_Bigfoot_Character_BP_DNA_Harvester_C(self):
+                 self.read_regular_indexed(0, 1, [4, 0], 15)
+	def read_Ceiling_Door_Wood_SM_New_C(self):
+		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
+	def read_Ceiling_Doorway_Wood_SM_New_C(self):
+		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
+	def read_Ceiling_X_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_CropPlotMedium_SM_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
+	def read_Door_X_C(self):
+		return self.read_regular_indexed(0, 1, [0, 1], 15)		
+	def read_Doorframe_X_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_FenceFoundation_Wood_SM_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_Fence_StoneM_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_FenceFoundation_Stone_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_Floor_X_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_Gate_X_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_GateFrame_X_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_Monkey_Character_BP_DNA_Harvester_C(self):
+		return self.read_regular_indexed(0, 1, [4, 0, 1], 15)
+	def read_Pillar_Wood_SM_New_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_PlayerPawnTest_Female_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_PrimalItem_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemAmmo_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemArmor_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemConsumable_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemConsumableBuff_Parachute_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemConsumableMiracleGro_C(self):
+		return self.read_regular_indexed(1, 1, 0, 9)
+	def read_PrimalItemDye_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemRadio_C(self):
+		return self.read_regular_indexed(1, 1, 0, 9)
+	def read_PrimalItemResource_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemSkin_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemWeaponAttachment_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_PrimalItemStructure_X_C(self):
+		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_Ramp_Wood_SM_New_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_StoneWall_Sloped_Right_SM_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_StoneWall_Sloped_Left_SM_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_StorageBox_X_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_ThatchRoof_SM_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
+	def read_Wall_X_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_WaterPipe_X_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_WeapFists_Female_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_WindowWall_X_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
 
 	def peekBytes(self, number):
 		pos = self.f.tell()
@@ -71,6 +99,10 @@ class ARK_savegame_reader:
 		uint = self.readUint32()
 		self.seek(pos)
 		return uint
+
+	def readDouble(self):
+		double_bytes = self.f.read(8)
+		return struct.unpack('d', double_bytes)[0]
 
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
@@ -137,39 +169,44 @@ class ARK_savegame_reader:
 		self.readUint32_equals(expected_value_of_second_uint)
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
-		self.f.read(number_of_trailing_words * 4)
-		return (descriptor, index)
+		d = self.f.read(number_of_trailing_words * 4)
+		return (descriptor, index, d)
 
 		
 
 	def read_ShooterGameState(self):
 		self.readString_equals('ShooterGameState')
 		self.readUint32_equals(0)
-		number_of_game_states = self.readUint32()
-		# so far only encountered 1 here
-		assert(number_of_game_states == 1)
-		for i in range(number_of_game_states):
-			self.readString_equals('ShooterGameState_{0}'.format(i))
-			self.f.read(9 * 4)
+		self.readUint32_equals(1)
+		self.readString_equals('ShooterGameState_0')
+		d = self.f.read(9 * 4)
+		return 'ShooterGameState', d
 
 	def read_InstancedFoliageActor(self):
 		self.readString_equals('InstancedFoliageActor')
 		self.readUint32_equals(0)
-		number_of_actors = self.readUint32()
-		# only encountered value 1
-		assert(number_of_actors == 1)
-		for i in range(number_of_actors):
-			self.readString_equals('InstancedFoliageActor_{0}'.format(i))
-			self.f.read(15 * 4)
+		self.readUint32_equals(1)
+		indexed = self.readString()
+		assert indexed.startswith('InstancedFoliageActor_'), indexed
+		index = int(indexed.split('_')[-1])
+		d = self.f.read(15 * 4)
+		return ('InstanceFoliageActor', index, d)
 
 	def read_MatineeActor(self):
 		self.readString_equals('MatineeActor')
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
 		self.readString_equals('Matinee_DayTime')
-		self.f.read(15*4)
+		d = self.f.read(15*4)
+		return 'MatineeActor', d
 
-	def read_DinoCharacterStatusComponent_BP_X_C(self, X):
+	def read_DinoCharacterStatusComponent_BP_X_C(self, X = None):
+		if X is None:
+			string = self.peekString()
+			transform = {'C':'Coel'}
+			X = string.split('_')[2]
+			if X in transform:
+				X = transform[X]
 		fixup = {'Megalodon':'Mega'}
 		if X in fixup:
 			X = fixup[X]
@@ -188,6 +225,10 @@ class ARK_savegame_reader:
 			if X in fixup:
 				X = fixup[X]
 			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), s
+		instance = self.readString()
+		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
+		d = self.f.read(9 * 4)
+		return ('DinoCharacterStatusComponent', X, d)
 			
 		
 	def read_X_Character_BP_C(self):
@@ -197,11 +238,8 @@ class ARK_savegame_reader:
 		number = self.readUint32()
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
-		self.f.read(15 * 4)
-		self.read_DinoCharacterStatusComponent_BP_X_C(dino)
-		self.readString_equals(indexed)
-		self.f.read(9 * 4)
-		return (dino, index)
+		d = self.f.read(15 * 4)
+		return (dino, index, d)
 	
 	def read_X_Character_C(self):
 		character = self.readString()
@@ -210,11 +248,8 @@ class ARK_savegame_reader:
 		number = self.readUint32()
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
-		self.f.read(15 * 4)
-		self.read_DinoCharacterStatusComponent_BP_X_C(dino)
-		self.readString_equals(indexed)
-		self.f.read(9 * 4)
-		return (dino, index)
+		d = self.f.read(15 * 4)
+		return (dino, index, d)
 
 
 	def read_DinoTamedInventoryComponent_X_C(self):
@@ -225,8 +260,8 @@ class ARK_savegame_reader:
 		inventory_indexed = self.readString()
 		assert inventory_indexed.startswith((character)), (inventory_indexed, character)
 		dino_name_index = self.readString()
-		self.f.read(9 * 4)
-		return (dino_name_index, 'TamedInventory')
+		d = self.f.read(9 * 4)
+		return (dino_name_index, 'TamedInventory', d)
 
 
 	def read_PrimalInventoryBP_X_C(self):
@@ -246,8 +281,8 @@ class ARK_savegame_reader:
 		if expected_indexed in translation:
 			expected_indexed = translation[expected_indexed]
 		assert indexed.startswith(expected_indexed), (indexed, expected_indexed)
-		self.f.read(9 * 4)
-		return (name, index)
+		d = self.f.read(9 * 4)
+		return (name, index, d)
 
 	def read_Thatch_X_C(self):
 		return self.read_regular_indexed(0, 1, [0, 1], 15)
@@ -262,30 +297,41 @@ class ARK_savegame_reader:
 		self.readString_equals('PlayerCharacterStatus')
 		string = self.readString()
 		string.startswith('PlayerPawnTest_')
-		self.f.read(9 * 4)
+		d = self.f.read(9 * 4)
+		c = self.read_PrimalInventoryComponent()
+		return 'PlayerCharacterStatusComponent', string, d, c
+		
+	def read_PrimalInventoryComponent(self):
 		self.readString_equals('PrimalInventoryComponent')
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		self.readString_equals('PrimalInventory1')
-		self.readString_equals(string)
-		self.f.read(9*4)
+		string = self.readString()
+		d = self.f.read(9*4)
+		return 'PrimalInventoryComponent', string, d
 
 	def get_Component_read_function(self, string):
+		'''
+		>>> ARK_savegame_reader(None).get_Component_read_function('DinoCharacterStatusComponent_BP_Monkey_C')
+		'''
 		read_Function = getattr(self, 'read_' + string, None)
-		if not read_Function and len(string.split('_')) == 2:
+		components = string.split('_')
+		#import pdb; pdb.set_trace()
+		if not read_Function and len(components) == 2:
 			read_Function = self.read_X_C
 		if not read_Function:
-			read_Function = getattr(self, 'read_' + string.split('_')[0] + '_X_C', None)
+			read_Function = getattr(self, 'read_' + components[0] + '_X_C', None)
 		if not read_Function:
-			read_Function = getattr(self, 'read_X_' + '_'.join(string.split('_')[1:]), None)
-		if read_Function:
-			return read_Function
+			read_Function = getattr(self, 'read_' + '_'.join(components[0:2]) + '_X_C', None)
+		if not read_Function:
+			read_Function = getattr(self, 'read_X_' + '_'.join(components[1:]), None)
+		return read_Function
 
 	def is_at_string_begin(self, max_string_length = 1000):
 		pos = self.f.tell()
 		length = self.readUint32()
 		is_valid_string = False
-		if 0 < length <= max_string_length:
+		if 4 < length <= max_string_length:
 			self.f.seek(length - 1, 1)
 			nullterminator = self.f.read(1)
 			is_valid_string = (nullterminator == b'\x00')
@@ -313,8 +359,8 @@ class ARK_savegame_reader:
 			return (string_c, 'no following string')
 		next_string = self.readString()
 		if next_string and next_string.endswith('_C'):
-			return 'self.read_{2} = lambda: self.read_regular_indexed({0}, {1}, {2}, {3})'.format(first_number, second_number, string_c, length)
-		return (string_c, 'following string is no _C string')
+			return 'self.read_{2}(self):\n\t\t self.read_regular_indexed({0}, {1}, {2}, {3})'.format(first_number, second_number, string_c, length)
+		return (string_c, 'following string is no _C string:', next_string )
 
 	def read_Component(self):
 		string = self.peekString()
@@ -324,42 +370,107 @@ class ARK_savegame_reader:
 		else:
 			string = self.get_regular_indexed_parameter(string)
 			assert not "Unknown component", string
+
+	def read_GameState(self):
+		self.readString_equals('GameState')
+		return 'GameState'
 		
+	def read_ObjectProperty(self):
+		self.readString_equals('ObjectProperty')
+		self.readUint32_equals(8)
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		self.readUint32_equals(4)
+		return 'ObjectProperty'
+
+	def read_DayNumber(self):
+		self.readString_equals('DayNumber')
+		return ('DayNumber', self.read_IntProperty())
+
+	def read_IntProperty(self):
+		self.readString_equals('IntProperty')
+		# 4 bytes per int?
+		self.readUint32_equals(4) 
+		self.readUint32_equals(0) #little endian 8byte int?
+		i = self.readUint32()
+		return i
+
+	def read_DoubleProperty(self):
+		self.readString_equals('DoubleProperty')
+		# 8 bytes per double?
+		self.readUint32_equals(8)
+		self.readUint32_equals(0)
+		return self.readDouble()
+
+	def read_None(self):
+		self.readString_equals('None')
+		self.readUint32_equals(0)
+		return 'None (string)'
+
+	def read_NetworkTime(self):
+		self.readString_equals('NetworkTime')
+		return ('NetworkTime', self.read_DoubleProperty())
+
+	def read_OriginalCreationTime(self):
+		self.readString_equals('OriginalCreationTime')
+		return ('OriginalCreationTime', self.read_DoubleProperty())
+		
+
+	def read_StaticMeshComponent(self):
+		character = self.readString()
+		self.readUint32_equals(0)
+		self.readUint32_equals(2)
+		indexed = self.readString()
+		assert indexed.startswith(character), (indexed, character)
+		contains_indexed = self.readString()
+		d = self.f.read(9 * 4)
+		return ('StaticMeshCompoment', contains_indexed, d)
+
+	def read_ArkGameMode(self):
+		self.readString_equals('ArkGameMode')
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		d = self.f.read(12 * 4)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+		return ('ArkGameMode', d)
+
+	def read_TestGameMode_X_C(self):
+		mod_component = self.readString()
+		assert mod_component.startswith('TestGameMode_'), mod_component
+		mod_name = mod_component.split('_')[1]
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		return ('TestGameMode', mod_name)
+
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
 		initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
-		print(initialEntries)
 		numberOfCells = self.readUint32()
-		cells = [self.readRegion() for i in range(numberOfCells)]	
-		print(cells)
-		self.readUint32_equals(0)
-		changingNumber = self.readUint32()
-		print(changingNumber)
+		cells = [self.readRegion() for i in range(numberOfCells)]
+		if self.is_at_string_begin():
+			self.readString_equals('Matinee_WorldEnd')
+		else:
+			unknown_number= self.readUint32()
+		number_of_entries = self.readUint32()
 		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
 		#761fc
-		mod_name = self.readString()
-		print(mod_name)
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		propertyName = self.readString()
-		print(propertyName)
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		self.readBytes_equals(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
-		self.read_ShooterGameState()
-		self.read_InstancedFoliageActor()
-		self.read_MatineeActor()
-		self.read_ShooterGameState()
-		for i in range(100000):
-			print(self.read_Component())
+		l = [self.read_Component() for i in range(number_of_entries)]
+		# somehow the last entry (FoliageActor) has 4 Words less at the end?
+		self.f.seek(-4 * 4, 1)
+		# 011E:BDF0
+		for i in range(10):
+			print(i, self.read_Component())
 
 
-if len(sys.argv) < 1:
-	print("Call {0} <path-to-savefile>".format(sys.argv[0]))
-	exit(-1)
-else:
-	reader = ARK_savegame_reader(sys.argv[1])
-	reader.readFile()
+if __name__ == "__main__":
+	if len(sys.argv) < 2:
+		print("Call {0} <path-to-savefile>".format(sys.argv[0]))
+		exit(-1)
+	elif sys.argv[1] == 'doctest':
+		import doctest
+		doctest.testmod()
+	else:
+		reader = ARK_savegame_reader(sys.argv[1])
+		reader.readFile()
