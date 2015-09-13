@@ -145,15 +145,15 @@ class ARK_savegame_reader:
 
 	def readUint32_equals(self, expected_value):
 		read_value = self.readUint32()
-		assert read_value == expected_value, '{0} == {1}'.format(read_value, expected_value)
+		assert read_value == expected_value, ('{0} == {1}'.format(read_value, expected_value), self.f.tell())
 
 	def readBytes_equals(self, expected_value):
 		read_value = self.f.read(len(expected_value))
-		assert read_value == expected_value, '{0} == {1}'.format(read_value, expected_value)
+		assert read_value == expected_value, ('{0} == {1}'.format(read_value, expected_value), self.f.tell())
 
 	def readString_equals(self, expected_value):
 		read_value = self.readString()
-		assert read_value == expected_value, '"{0}" == "{1}"'.format(read_value, expected_value)
+		assert read_value == expected_value, ('"{0}" == "{1}"'.format(read_value, expected_value), self.f.tell())
 
 	def read_regular_indexed(self, expected_value_of_first_uint, 
 					expected_value_of_second_uint,
@@ -187,7 +187,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
 		indexed = self.readString()
-		assert indexed.startswith('InstancedFoliageActor_'), indexed
+		assert indexed.startswith('InstancedFoliageActor_'), (indexed, self.f.tell())
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(15 * 4)
 		return ('InstanceFoliageActor', index, d)
@@ -215,7 +215,7 @@ class ARK_savegame_reader:
 			self.readUint32_equals(0)
 			self.readUint32_equals(2)
 			s = self.readString()
-			assert s.startswith('DinoCharacterStatus_BP_C'.format(X)), s
+			assert s.startswith('DinoCharacterStatus_BP_C'.format(X)), (s, self.f.tell())
 		else:
 			self.readString_equals('DinoCharacterStatusComponent_BP_{0}_C'.format(X))
 			self.readUint32_equals(0)
@@ -224,7 +224,7 @@ class ARK_savegame_reader:
 			fixup = {'Ankylo':'Anklyo', }
 			if X in fixup:
 				X = fixup[X]
-			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), s
+			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), (s, self.f.tell())
 		instance = self.readString()
 		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
 		d = self.f.read(9 * 4)
@@ -258,7 +258,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		inventory_indexed = self.readString()
-		assert inventory_indexed.startswith((character)), (inventory_indexed, character)
+		assert inventory_indexed.startswith((character)), (inventory_indexed, character, self.f.tell())
 		dino_name_index = self.readString()
 		d = self.f.read(9 * 4)
 		return (dino_name_index, 'TamedInventory', d)
@@ -270,7 +270,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		C1_string = self.readString()
-		assert C1_string.startswith(character + '1')
+		assert C1_string.startswith(character + '1'), (C1_string, character, self.f.tell())
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
 		expected_indexed = '_'.join(character.split('_')[1:])
@@ -280,7 +280,7 @@ class ARK_savegame_reader:
 				'Tap_C' : 'WaterTap_C_3' }
 		if expected_indexed in translation:
 			expected_indexed = translation[expected_indexed]
-		assert indexed.startswith(expected_indexed), (indexed, expected_indexed)
+		assert indexed.startswith(expected_indexed), (indexed, expected_indexed, self.f.tell())
 		d = self.f.read(9 * 4)
 		return (name, index, d)
 
@@ -369,7 +369,7 @@ class ARK_savegame_reader:
 			return read_Function()
 		else:
 			string = self.get_regular_indexed_parameter(string)
-			assert not "Unknown component", string
+			assert not "Unknown component", (string, self.f.tell())
 
 	def read_GameState(self):
 		self.readString_equals('GameState')
@@ -421,7 +421,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		indexed = self.readString()
-		assert indexed.startswith(character), (indexed, character)
+		assert indexed.startswith(character), (indexed, character, self.f.tell())
 		contains_indexed = self.readString()
 		d = self.f.read(9 * 4)
 		return ('StaticMeshCompoment', contains_indexed, d)
@@ -436,7 +436,7 @@ class ARK_savegame_reader:
 
 	def read_TestGameMode_X_C(self):
 		mod_component = self.readString()
-		assert mod_component.startswith('TestGameMode_'), mod_component
+		assert mod_component.startswith('TestGameMode_'), (mod_component, self.f.tell())
 		mod_name = mod_component.split('_')[1]
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
