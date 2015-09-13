@@ -456,15 +456,29 @@ class ARK_savegame_reader:
 	def read_None(self):
 		self.readString_equals('None')
 		self.readUint32_equals(0)
-		return 'None (string)'
+		return ('None', None)
 
 	def read_NoneProperty(self):
 		return self.read_None()
 
 	def read_ByteProperty(self):
 		self.readString_equals('ByteProperty')
-		number_of_words = self.readUint32()
-		return self.f.read(number_of_words * WORD_SIZE)
+		self.readUint32_equals(1)
+		index = self.readUint32()
+		self.readString_equals('None')
+		return ('ByteProperty', index, self.f.read(1))
+
+	def read_UInt32Property(self):
+		self.readString_equals('UInt32Property')
+		self.readUint32_equals(4)
+		self.readUint32_equals(0)
+		return self.readUint32()
+
+	def read_NameProperty(self):
+		self.readString_equals('NameProperty')
+		self.readUint32_equals(0x16)
+		self.readUint32_equals(0)
+		return self.readString()
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
