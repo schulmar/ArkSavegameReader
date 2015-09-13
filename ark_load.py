@@ -52,6 +52,8 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(1, 1, 1, 9)
 	def read_PrimalItemConsumableMiracleGro_C(self):
 		return self.read_regular_indexed(1, 1, 0, 9)
+	def read_PrimalItemConsumableRespecSoup_C(self):
+		return self.read_regular_indexed(1, 1, 0, 9)
 	def read_PrimalItemDye_X_C(self):
 		return self.read_regular_indexed(1, 1, 1, 9)
 	def read_PrimalItemRadio_C(self):
@@ -72,6 +74,13 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 	def read_StorageBox_X_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_StructurePaintingComponent(self):
+		self.readString_equals('StructurePaintingComponent')
+		number = self.readUint32()
+		self.readUint32_equals(2)
+		self.readString_equals('StructurePainting1')
+		indexed_structure = self.readString()
+		return ('StructurePaintingComponent', indexed_structure, self.f.read(9 * 4))
 	def read_ThatchRoof_SM_C(self):
 		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_Wall_X_C(self):
