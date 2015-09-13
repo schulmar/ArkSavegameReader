@@ -122,6 +122,10 @@ class ARK_savegame_reader:
 		bool_byte = self.f.read(1)
 		return struct.unpack('?', bool_byte)[0]
 
+	def readInt8(self):
+		int8_byte = self.f.read(1)
+		return struct.unpack('c', int8_byte)[0]
+
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
 		return self.f.read(size * size_multiplier)
@@ -401,20 +405,16 @@ class ARK_savegame_reader:
 		self.readUint32_equals(8)
 		self.readUint32_equals(0)
 		self.readUint32_equals(0)
-		self.readUint32_equals(4)
+		n = self.readUint32()
+		print(n)
 		values = {}
 		last_property_was_none = False
-		while True:
-			named_property = self.read_NameAndProperty()
-			current_property_is_none = (named_property[0] == 'None (string)')
-			if current_property_is_none:
-				if last_property_was_none:
-					break
-			else:
-				values[named_property[0]] = named_property[1:]
-			last_property_was_none = current_property_is_none
-		self.readUint32_equals(0)
-		return ('ObjectProperty', values)
+		while self.is_at_string_begin():
+			name_and_property = self.read_NameAndProperty()
+			print(name_and_property)
+			values[name_and_property[0]] = name_and_property[1]
+		self.readUint32_equals([0, 1])
+		return ('ObjectProperty', n, values)
 
 	def read_DayNumber(self):
 		self.readString_equals('DayNumber')
@@ -435,8 +435,8 @@ class ARK_savegame_reader:
 		self.readString_equals('FloatProperty')
 		# 4 bytes per float?
 		self.readUint32_equals(4)
-		self.readUint32_equals(0)
-		return self.readFloat()
+		i = self.readUint32()
+		return ('FloatProperty', i, self.readFloat())
 
 
 	def read_DoubleProperty(self):
@@ -476,9 +476,17 @@ class ARK_savegame_reader:
 
 	def read_NameProperty(self):
 		self.readString_equals('NameProperty')
-		self.readUint32_equals(0x16)
+		self.readUint32_equals([0x15, 0x16, 0x17])
 		self.readUint32_equals(0)
 		return self.readString()
+
+	def read_Int8Property(self):
+		self.readString_equals('Int8Property')
+		# number of bytes?
+		self.readUint32_equals(1)
+		self.readUint32_equals(1)
+		return ('Int8Property', self.readInt8())
+		
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
@@ -532,7 +540,7 @@ class ARK_savegame_reader:
 		if name == 'None':
 			return self.read_None()
 		else:
-			name = self.readString()
+			self.readString_equals(name)
 			return (name, self.read_XPropertyTypeAndValue())
 
 	def readFile(self):
@@ -551,8 +559,9 @@ class ARK_savegame_reader:
 		l = [self.read_Component() for i in range(number_of_entries)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
+		print('==== Reading properties ====')
 		# 011E:BDF0
-		for i in range(10):
+		for i in range(100000):
 			print(i, self.read_NameAndProperty())
 
 
