@@ -163,7 +163,10 @@ class ARK_savegame_reader:
 
 	def readUint32_equals(self, expected_value):
 		read_value = self.readUint32()
-		assert read_value == expected_value, ('{0} == {1}'.format(read_value, expected_value), self.f.tell())
+		if isinstance(expected_value, list):
+			assert read_value in expected_value, ('{0} in {1}'.format(read_value, expected_value), self.f.tell())
+		else:
+			assert read_value == expected_value, ('{0} == {1}'.format(read_value, expected_value), self.f.tell())
 
 	def readBytes_equals(self, expected_value):
 		read_value = self.f.read(len(expected_value))
