@@ -405,7 +405,7 @@ class ARK_savegame_reader:
 		values = {}
 		last_property_was_none = False
 		while True:
-			named_property = self.read_NamedProperty()
+			named_property = self.read_NameAndProperty()
 			current_property_is_none = (named_property[0] == 'None (string)')
 			if current_property_is_none:
 				if last_property_was_none:
@@ -527,7 +527,7 @@ class ARK_savegame_reader:
 		assert read_property_func is not None, (propertyType, self.f.tell())
 		return read_property_func()
 
-	def read_NamedProperty(self):
+	def read_NameAndProperty(self):
 		name = self.peekString()
 		if name == 'None':
 			return self.read_None()
@@ -553,7 +553,7 @@ class ARK_savegame_reader:
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		# 011E:BDF0
 		for i in range(10):
-			print(i, self.read_NamedProperty())
+			print(i, self.read_NameAndProperty())
 
 
 if __name__ == "__main__":
