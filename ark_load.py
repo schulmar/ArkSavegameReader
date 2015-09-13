@@ -109,6 +109,10 @@ class ARK_savegame_reader:
 		self.seek(pos)
 		return uint
 
+	def readFloat(self):
+		float_bytes = self.f.read(4)
+		return struct.unpack('f', float_bytes)[0]
+
 	def readDouble(self):
 		double_bytes = self.f.read(8)
 		return struct.unpack('d', double_bytes)[0]
@@ -382,7 +386,19 @@ class ARK_savegame_reader:
 
 	def read_GameState(self):
 		self.readString_equals('GameState')
-		return 'GameState'
+		values = {}
+		last_component_was_none = False
+		while True:
+			component = self.read_Component()
+			current_component_is_none = (component == 'None (string)')
+			if current_component_is_none:
+				if last_component_was_none:
+					break
+			else:
+				values[component[0]] = component[1:]
+			last_component_was_none = current_component_is_none
+		self.readUint32_equals(0)
+		return ('GameState', values)
 		
 	def read_ObjectProperty(self):
 		self.readString_equals('ObjectProperty')
@@ -395,6 +411,9 @@ class ARK_savegame_reader:
 	def read_DayNumber(self):
 		self.readString_equals('DayNumber')
 		return ('DayNumber', self.read_IntProperty())
+	def read_PlayRate(self):
+		self.readString_equals('PlayRate')
+		return ('PlayRate', self.read_FloatProperty())
 
 	def read_IntProperty(self):
 		self.readString_equals('IntProperty')
@@ -403,6 +422,14 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0) #little endian 8byte int?
 		i = self.readUint32()
 		return i
+
+	def read_FloatProperty(self):
+		self.readString_equals('FloatProperty')
+		# 4 bytes per double?
+		self.readUint32_equals(4)
+		self.readUint32_equals(0)
+		return self.readFloat()
+
 
 	def read_DoubleProperty(self):
 		self.readString_equals('DoubleProperty')
@@ -456,7 +483,6 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
 		return ('TestGameMode', '(No mod?)')
-
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
