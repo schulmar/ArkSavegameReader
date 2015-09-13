@@ -117,6 +117,10 @@ class ARK_savegame_reader:
 		double_bytes = self.f.read(8)
 		return struct.unpack('d', double_bytes)[0]
 
+	def readBool(self):
+		bool_byte = self.f.read(1)
+		return struct.unpack('?', bool_byte)[0]
+
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
 		return self.f.read(size * size_multiplier)
@@ -386,6 +390,14 @@ class ARK_savegame_reader:
 
 	def read_GameState(self):
 		self.readString_equals('GameState')
+		return ('GameState', self.read_ObjectProperty())
+		
+	def read_ObjectProperty(self):
+		self.readString_equals('ObjectProperty')
+		self.readUint32_equals(8)
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		self.readUint32_equals(4)
 		values = {}
 		last_component_was_none = False
 		while True:
@@ -398,15 +410,7 @@ class ARK_savegame_reader:
 				values[component[0]] = component[1:]
 			last_component_was_none = current_component_is_none
 		self.readUint32_equals(0)
-		return ('GameState', values)
-		
-	def read_ObjectProperty(self):
-		self.readString_equals('ObjectProperty')
-		self.readUint32_equals(8)
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
-		self.readUint32_equals(4)
-		return 'ObjectProperty'
+		return ('ObjectProperty', values)
 
 	def read_DayNumber(self):
 		self.readString_equals('DayNumber')
@@ -438,10 +442,20 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		return self.readDouble()
 
+	def read_BoolProperty(self):
+		self.readString_equals('BoolProperty')
+		# 1 bytes per bool but 0 as vaule?
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		return self.readBool()
+
 	def read_None(self):
 		self.readString_equals('None')
 		self.readUint32_equals(0)
 		return 'None (string)'
+
+	def read_NoneProperty(self):
+		return self.read_None()
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
@@ -484,6 +498,16 @@ class ARK_savegame_reader:
 		self.readUint32_equals(1)
 		return ('TestGameMode', '(No mod?)')
 
+	def read_XPropertyTypeAndValue(self):
+		propertyType = self.peekString() #e.g. FloatProperty
+		read_property_func = getattr(self, 'read_' + propertyType, None)
+		assert read_property_func is not None, (propertyType, self.f.tell())
+		return read_property_func()
+
+	def read_NamedProperty(self):
+		name = self.readString()
+		return (name, self.read_XPropertyTypeAndValue())
+
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
@@ -502,7 +526,7 @@ class ARK_savegame_reader:
 		self.f.seek(-4 * 4, 1)
 		# 011E:BDF0
 		for i in range(10):
-			print(i, self.read_Component())
+			print(i, self.read_NamedProperty())
 
 
 if __name__ == "__main__":
