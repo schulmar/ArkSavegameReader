@@ -4,6 +4,7 @@ import struct
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
+	WORD_SIZE = 4
 
 	def __init__(self, file_name, debug=False):
 		self.f = open(file_name, 'rb') if file_name else None
@@ -80,7 +81,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(2)
 		self.readString_equals('StructurePainting1')
 		indexed_structure = self.readString()
-		return ('StructurePaintingComponent', indexed_structure, self.f.read(9 * 4))
+		return ('StructurePaintingComponent', indexed_structure, self.f.read(9 * ARK_savegame_reader.WORD_SIZE))
 	def read_ThatchRoof_SM_C(self):
 		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_Wall_X_C(self):
@@ -186,7 +187,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(expected_value_of_second_uint)
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
-		d = self.f.read(number_of_trailing_words * 4)
+		d = self.f.read(number_of_trailing_words * ARK_savegame_reader.WORD_SIZE)
 		return (descriptor, index, d)
 
 		
@@ -196,7 +197,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
 		self.readString_equals('ShooterGameState_0')
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return 'ShooterGameState', d
 
 	def read_InstancedFoliageActor(self):
@@ -206,7 +207,7 @@ class ARK_savegame_reader:
 		indexed = self.readString()
 		assert indexed.startswith('InstancedFoliageActor_'), (indexed, self.f.tell())
 		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * 4)
+		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
 		return ('InstanceFoliageActor', index, d)
 
 	def read_MatineeActor(self):
@@ -214,7 +215,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
 		self.readString_equals('Matinee_DayTime')
-		d = self.f.read(15*4)
+		d = self.f.read(15*ARK_savegame_reader.WORD_SIZE)
 		return 'MatineeActor', d
 
 	def read_DinoCharacterStatusComponent_BP_X_C(self, X = None):
@@ -244,7 +245,7 @@ class ARK_savegame_reader:
 			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), (s, self.f.tell())
 		instance = self.readString()
 		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return ('DinoCharacterStatusComponent', X, d)
 			
 		
@@ -255,7 +256,7 @@ class ARK_savegame_reader:
 		number = self.readUint32()
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * 4)
+		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
 		return (dino, index, d)
 	
 	def read_X_Character_C(self):
@@ -265,7 +266,7 @@ class ARK_savegame_reader:
 		number = self.readUint32()
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * 4)
+		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
 		return (dino, index, d)
 
 
@@ -277,7 +278,7 @@ class ARK_savegame_reader:
 		inventory_indexed = self.readString()
 		assert inventory_indexed.startswith((character)), (inventory_indexed, character, self.f.tell())
 		dino_name_index = self.readString()
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return (dino_name_index, 'TamedInventory', d)
 
 
@@ -298,7 +299,7 @@ class ARK_savegame_reader:
 		if expected_indexed in translation:
 			expected_indexed = translation[expected_indexed]
 		assert indexed.startswith(expected_indexed), (indexed, expected_indexed, self.f.tell())
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return (name, index, d)
 
 	def read_Thatch_X_C(self):
@@ -314,7 +315,7 @@ class ARK_savegame_reader:
 		self.readString_equals('PlayerCharacterStatus')
 		string = self.readString()
 		string.startswith('PlayerPawnTest_')
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		c = self.read_PrimalInventoryComponent()
 		return 'PlayerCharacterStatusComponent', string, d, c
 		
@@ -324,7 +325,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(2)
 		self.readString_equals('PrimalInventory1')
 		string = self.readString()
-		d = self.f.read(9*4)
+		d = self.f.read(9*ARK_savegame_reader.WORD_SIZE)
 		return 'PrimalInventoryComponent', string, d
 
 	def get_Component_read_function(self, string):
@@ -429,7 +430,7 @@ class ARK_savegame_reader:
 
 	def read_FloatProperty(self):
 		self.readString_equals('FloatProperty')
-		# 4 bytes per double?
+		# 4 bytes per float?
 		self.readUint32_equals(4)
 		self.readUint32_equals(0)
 		return self.readFloat()
@@ -457,6 +458,11 @@ class ARK_savegame_reader:
 	def read_NoneProperty(self):
 		return self.read_None()
 
+	def read_ByteProperty(self):
+		self.readString_equals('ByteProperty')
+		number_of_words = self.readUint32()
+		return self.f.read(number_of_words * WORD_SIZE)
+
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
 		return ('NetworkTime', self.read_DoubleProperty())
@@ -473,7 +479,7 @@ class ARK_savegame_reader:
 		indexed = self.readString()
 		assert indexed.startswith(character), (indexed, character, self.f.tell())
 		contains_indexed = self.readString()
-		d = self.f.read(9 * 4)
+		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return ('StaticMeshCompoment', contains_indexed, d)
 
 	def read_ArkGameMode(self):
@@ -481,7 +487,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(0)
 		self.readUint32_equals(1)
-		d = self.f.read(12 * 4)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+		d = self.f.read(12 * ARK_savegame_reader.WORD_SIZE)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
 		return ('ArkGameMode', d)
 
 	def read_TestGameMode_X_C(self):
@@ -527,7 +533,7 @@ class ARK_savegame_reader:
 		#761fc
 		l = [self.read_Component() for i in range(number_of_entries)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
-		self.f.seek(-4 * 4, 1)
+		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		# 011E:BDF0
 		for i in range(10):
 			print(i, self.read_NamedProperty())
