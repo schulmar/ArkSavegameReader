@@ -399,16 +399,16 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(4)
 		values = {}
-		last_component_was_none = False
+		last_property_was_none = False
 		while True:
-			component = self.read_Component()
-			current_component_is_none = (component == 'None (string)')
-			if current_component_is_none:
-				if last_component_was_none:
+			named_property = self.read_NamedProperty()
+			current_property_is_none = (named_property[0] == 'None (string)')
+			if current_property_is_none:
+				if last_property_was_none:
 					break
 			else:
-				values[component[0]] = component[1:]
-			last_component_was_none = current_component_is_none
+				values[named_property[0]] = named_property[1:]
+			last_property_was_none = current_property_is_none
 		self.readUint32_equals(0)
 		return ('ObjectProperty', values)
 
@@ -505,8 +505,12 @@ class ARK_savegame_reader:
 		return read_property_func()
 
 	def read_NamedProperty(self):
-		name = self.readString()
-		return (name, self.read_XPropertyTypeAndValue())
+		name = self.peekString()
+		if name == 'None':
+			return self.read_None()
+		else:
+			name = self.readString()
+			return (name, self.read_XPropertyTypeAndValue())
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
