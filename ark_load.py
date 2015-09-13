@@ -442,6 +442,12 @@ class ARK_savegame_reader:
 		self.readUint32_equals(1)
 		return ('TestGameMode', mod_name)
 
+	def read_TestGameMode_C(self):
+		self.readString_equals('TestGameMode_C')
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		return ('TestGameMode', '(No mod?)')
+
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
