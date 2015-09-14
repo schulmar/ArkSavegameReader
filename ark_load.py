@@ -476,7 +476,7 @@ class ARK_savegame_reader:
 
 	def read_NameProperty(self):
 		self.readString_equals('NameProperty')
-		self.readUint32_equals([0x15, 0x16, 0x17])
+		self.readUint32_equals([0x14, 0x15, 0x16, 0x17])
 		self.readUint32_equals(0)
 		return self.readString()
 
@@ -486,7 +486,12 @@ class ARK_savegame_reader:
 		self.readUint32_equals(1)
 		self.readUint32_equals(1)
 		return ('Int8Property', self.readInt8())
-		
+	
+	def read_StrProperty(self):
+		self.readString_equals('StrProperty')
+		self.readUint32_equals([9, 0xd])
+		self.readUint32_equals(0)
+		return ('StrProperty', self.readString())	
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
@@ -561,7 +566,7 @@ class ARK_savegame_reader:
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		print('==== Reading properties ====')
 		# 011E:BDF0
-		for i in range(100000):
+		for i in range(1000000):
 			print(i, self.read_NameAndProperty())
 
 
