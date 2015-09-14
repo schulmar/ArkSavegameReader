@@ -157,7 +157,7 @@ class ARK_savegame_reader:
 	def readRegion(self):
 		cell_name = self.readString()
 		if self.debug:
-			print("Reading region {0}".format(cell_name))
+			self.print("Reading region {0}".format(cell_name))
 		number_of_entry_batches = self.readUint32()
 		# so far only encountered 0 and 1
 		assert(number_of_entry_batches <= 1)
@@ -166,7 +166,7 @@ class ARK_savegame_reader:
 			for i in range(number_of_entries):
 				entry = self.readEntry(4)
 				if self.debug:
-					print('Read entry of size {0}'.format(len(entry)))
+					self.print('Read entry of size {0}'.format(len(entry)))
 		return cell_name
 
 	def readUint32_equals(self, expected_value):
@@ -406,16 +406,30 @@ class ARK_savegame_reader:
 		
 	def read_ObjectProperty(self):
 		self.readString_equals('ObjectProperty')
-		self.readUint32_equals(8)
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
-		n = self.readUint32()
-		print(n)
+		object_type = self.readUint32()
+		n = None
+		if object_type == 8:
+			self.readUint32_equals(0)
+			self.readUint32_equals(0)
+			n = self.readUint32()
+		elif object_type == 4:
+			self.readUint32_equals(0)
+			v1 = self.readUint32()#5v
+		elif object_type == 2:
+			self.readUint32_equals(0)
+			v1 = self.readUint32()#6v
+			self.readUint32_equals(0)
+			v2 = self.readUint32()#7v
+		elif object_type == 1:
+			self.readUint32_equals(0)
+			v1 = self.readUint32()#8v
+		else:
+			assert not "Unknown value", (object_type, self.f.tell())
 		values = {}
 		last_property_was_none = False
 		while self.is_at_string_begin():
 			name_and_property = self.read_NameAndProperty()
-			print(name_and_property)
+			self.print(name_and_property)
 			values[name_and_property[0]] = name_and_property[1]
 		self.readUint32_equals([0, 1])
 		return ('ObjectProperty', n, values)
@@ -493,7 +507,7 @@ class ARK_savegame_reader:
 	
 	def read_StrProperty(self):
 		self.readString_equals('StrProperty')
-		self.readUint32_equals([9, 0xd])
+		self.readUint32_equals([9, 0xC, 0xd])
 		self.readUint32_equals(0)
 		return ('StrProperty', self.readString())
 
@@ -502,6 +516,26 @@ class ARK_savegame_reader:
 		self.readUint32_equals(2)
 		self.readUint32_equals(0)
 		return ('UInt16Property', self.readUint16())
+
+	def read_ArrayProperty(self):
+		self.readString_equals('ArrayProperty')
+		number_of_entries = self.readUint32()
+		self.readUint32_equals(0)
+		entries = [self.read_XPropertyTypeAndValue() for i in range(number_of_entries)]
+		return ('ArrayProperty', entries)
+
+	def read_StructProperty(self):
+		self.readString_equals('StructProperty')
+		number_of_entries = self.readUint32()
+		self.readUint32_equals(0)
+		name = self.readString()
+		entries = {}
+		while self.peekString() != 'None':
+			name_and_property = self.read_NameAndProperty()
+			entries[name_and_property[0]] = name_and_property[1:]
+		self.readString_equals('None')
+		return ('StructProperty', name, entries)
+		
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
@@ -574,10 +608,13 @@ class ARK_savegame_reader:
 		l = [self.read_Component() for i in range(number_of_entries)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
-		print('==== Reading properties ====')
+		self.print('==== Reading properties ====')
 		# 011E:BDF0
 		for i in range(1000000):
-			print(i, self.read_NameAndProperty())
+			self.print(i, self.read_NameAndProperty())
+
+	def print(self, *args, **kwargs):
+		print(sys._getframe(2).f_code.co_firstlineno, ':', self.f.tell(), *args, **kwargs)
 
 
 if __name__ == "__main__":
