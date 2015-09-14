@@ -125,6 +125,10 @@ class ARK_savegame_reader:
 	def readInt8(self):
 		int8_byte = self.f.read(1)
 		return struct.unpack('c', int8_byte)[0]
+	
+	def readUint16(self):
+		uint16_bytes = self.f.read(2)
+		return struct.unpack('H', uint16_bytes)[0]
 
 	def readEntry(self, size_multiplier = 1):
 		size = self.readUint32()
@@ -491,7 +495,13 @@ class ARK_savegame_reader:
 		self.readString_equals('StrProperty')
 		self.readUint32_equals([9, 0xd])
 		self.readUint32_equals(0)
-		return ('StrProperty', self.readString())	
+		return ('StrProperty', self.readString())
+
+	def read_UInt16Property(self):
+		self.readString_equals('UInt16Property')
+		self.readUint32_equals(2)
+		self.readUint32_equals(0)
+		return ('UInt16Property', self.readUint16())
 
 	def read_NetworkTime(self):
 		self.readString_equals('NetworkTime')
