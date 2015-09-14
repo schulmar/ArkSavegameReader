@@ -412,6 +412,11 @@ class ARK_savegame_reader:
 			self.readUint32_equals(0)
 			self.readUint32_equals(0)
 			n = self.readUint32()
+		elif object_type == 7:
+			v = []	
+			for i in range(7):
+				self.readUint32_equals(0)
+				v.append(self.readUint32())
 		elif object_type == 4:
 			self.readUint32_equals(0)
 			v1 = self.readUint32()#5v
