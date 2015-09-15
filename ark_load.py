@@ -9,8 +9,8 @@ class ARK_savegame_reader:
 	def __init__(self, file_name, debug=False):
 		self.f = open(file_name, 'rb') if file_name else None
 		self.debug = debug
-	def read_Bigfoot_Character_BP_DNA_Harvester_C(self):
-                 self.read_regular_indexed(0, 1, [4, 0], 15)
+	def read_X_Character_BP_DNA_Harvester_C(self):
+                return self.read_regular_indexed(0, 1, [4, 0], 15)
 	def read_Ceiling_Door_Wood_SM_New_C(self):
 		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
 	def read_Ceiling_Doorway_Wood_SM_New_C(self):
@@ -92,6 +92,14 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
 	def read_WindowWall_X_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_Window_Wood_BP_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_WoodRoof_SM_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
+	def read_WoodWall_Sloped_Left_SM_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
+	def read_WoodWall_Sloped_Right_SM_C(self):
+		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 
 	def peekBytes(self, number):
 		pos = self.f.tell()
