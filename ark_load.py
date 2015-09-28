@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import sys
 import struct
+import string
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
@@ -377,8 +378,8 @@ class ARK_savegame_reader:
 			nullterminator = self.f.read(1)
 			is_valid_string = (nullterminator == b'\x00')
 		self.f.seek(pos)
-		string = self.peekString()
-		return is_valid_string and isinstance(string, str)
+		s = self.peekString()
+		return is_valid_string and isinstance(s, str) and all(c in string.printable for c in s)
 
 	def get_regular_indexed_parameter(self, string_c):
 		self.readString_equals(string_c)
