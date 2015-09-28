@@ -419,13 +419,13 @@ class ARK_savegame_reader:
 		while not self.is_at_string_begin():
 			n.append(self.readUint32())	
 		values = {}
-		last_property_was_none = False
-		while self.is_at_string_begin():
+		last_property = ('', 0)
+		while not (last_property[0] == 'None' and last_property[1] != None):
 			name_and_property = self.read_NameAndProperty()
+			last_property = name_and_property
 			self.print(name_and_property)
 			values[name_and_property[0]] = name_and_property[1]
-		self.readUint32_equals([0, 1])
-		return ('ObjectProperty', n, values)
+		return ('ObjectProperty', object_type, n, values)
 
 	def read_DayNumber(self):
 		self.readString_equals('DayNumber')
@@ -467,7 +467,10 @@ class ARK_savegame_reader:
 	def read_None(self):
 		self.readString_equals('None')
 		self.readUint32_equals(0)
-		return ('None', None)
+		v = None
+		if not self.is_at_string_begin():
+			v = self.readUint32()
+		return ('None', v)
 
 	def read_NoneProperty(self):
 		return self.read_None()
