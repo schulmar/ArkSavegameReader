@@ -415,29 +415,9 @@ class ARK_savegame_reader:
 	def read_ObjectProperty(self):
 		self.readString_equals('ObjectProperty')
 		object_type = self.readUint32()
-		n = None
-		if object_type == 8:
-			self.readUint32_equals(0)
-			self.readUint32_equals(0)
-			n = self.readUint32()
-		elif object_type == 7:
-			v = []	
-			for i in range(7):
-				self.readUint32_equals(0)
-				v.append(self.readUint32())
-		elif object_type == 4:
-			self.readUint32_equals(0)
-			v1 = self.readUint32()#5v
-		elif object_type == 2:
-			self.readUint32_equals(0)
-			v1 = self.readUint32()#6v
-			self.readUint32_equals(0)
-			v2 = self.readUint32()#7v
-		elif object_type == 1:
-			self.readUint32_equals(0)
-			v1 = self.readUint32()#8v
-		else:
-			assert not "Unknown value", (object_type, self.f.tell())
+		n = []
+		while not self.is_at_string_begin():
+			n.append(self.readUint32())	
 		values = {}
 		last_property_was_none = False
 		while self.is_at_string_begin():
