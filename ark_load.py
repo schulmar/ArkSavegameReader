@@ -44,7 +44,7 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(0, 1, [4, 0, 1], 15)
 	def read_Pillar_Wood_SM_New_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_PlayerPawnTest_Female_C(self):
+	def read_PlayerPawnTest_X_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
 	def read_PrimalItem_X_C(self):
 		return self.read_regular_indexed(1, 1, 1, 9)
