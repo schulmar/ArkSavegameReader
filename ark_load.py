@@ -424,7 +424,8 @@ class ARK_savegame_reader:
 		object_type = self.readUint32()
 		n = []
 		while not self.is_at_string_begin():
-			n.append(self.readUint32())	
+			n.append(self.readUint32())
+		self.print('ObjectProperty', object_type, n)
 		values = {}
 		last_property = (False, 0)
 		while last_property[0] != final_element:
@@ -518,6 +519,7 @@ class ARK_savegame_reader:
 		self.readString_equals('ArrayProperty')
 		number_of_entries = self.readUint32()
 		self.readUint32_equals(0)
+		self.print('ArrayProperty', number_of_entries)
 		entries = [self.read_XPropertyTypeAndValue(name) for i in range(number_of_entries)]
 		return ('ArrayProperty', entries)
 
@@ -571,7 +573,10 @@ class ARK_savegame_reader:
 		read_property_func = getattr(self, 'read_' + propertyType, None)
 		assert read_property_func is not None, (propertyType, self.f.tell())
 		final_element = {'MyCharacterStatusComponent' : 'LastInAllyRangeTime',
-				'GameState' : 'LastInAllyRangeTime'}
+				'GameState' : 'LastInAllyRangeTime',
+				'MyInventoryComponent' : 'InventoryItems',
+				'InventoryItems' : 'EquippedItems',
+				'EquippedItems' : 'ItemId'}
 		return read_property_func(final_element[name] if name in final_element else None)
 
 	def read_NameAndProperty(self):
