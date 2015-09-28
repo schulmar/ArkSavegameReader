@@ -115,7 +115,7 @@ class ARK_savegame_reader:
 	def peekUint32(self):
 		pos = self.f.tell()
 		uint = self.readUint32()
-		self.seek(pos)
+		self.f.seek(pos)
 		return uint
 
 	def readFloat(self):
