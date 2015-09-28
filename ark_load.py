@@ -562,6 +562,14 @@ class ARK_savegame_reader:
 		self.readUint32_equals(1)
 		return ('TestGameMode', mod_name)
 
+	def read_GameMode_X_C(self):
+		game_component = self.readString()
+		assert game_component.startswith('GameMode_'), (game_component, self.f.tell())
+		game_name = game_component.split('_')[1]
+		self.readUint32_equals(0)
+		self.readUint32_equals(1)
+		return ('GameMode', game_name)
+
 	def read_TestGameMode_C(self):
 		self.readString_equals('TestGameMode_C')
 		self.readUint32_equals(0)
