@@ -64,6 +64,8 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(1, 1, 1, 9)
 	def read_PrimalItemRadio_C(self):
 		return self.read_regular_indexed(1, 1, 0, 9)
+	def read_PrimalItemRaft_C(self):
+		return self.read_regular_indexed(1, 1, 0, 9)
 	def read_PrimalItemResource_X_C(self):
 		return self.read_regular_indexed(1, 1, 1, 9)
 	def read_PrimalItemSkin_X_C(self):
@@ -72,6 +74,8 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(1, 1, 1, 9)
 	def read_PrimalItemStructure_X_C(self):
 		return self.read_regular_indexed(1, 1, 1, 9)
+	def read_Raft_BP_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_Ramp_Wood_SM_New_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
 	def read_StoneWall_Sloped_Right_SM_C(self):
@@ -123,6 +127,10 @@ class ARK_savegame_reader:
 		self.f.seek(pos)
 		return uint
 
+	def readUint64(self):
+		uint_bytes = self.f.read(8)
+		return struct.unpack('Q', uint_bytes)[0]
+
 	def readFloat(self):
 		float_bytes = self.f.read(4)
 		return struct.unpack('f', float_bytes)[0]
@@ -138,6 +146,10 @@ class ARK_savegame_reader:
 	def readInt8(self):
 		int8_byte = self.f.read(1)
 		return struct.unpack('c', int8_byte)[0]
+
+	def readInt32(self):
+		int32_bytes = self.f.read(4)
+		return struct.unpack('i', int32_bytes)[0]
 	
 	def readUint16(self):
 		uint16_bytes = self.f.read(2)
@@ -153,12 +165,31 @@ class ARK_savegame_reader:
 		self.seek(pos)
 		return result
 
-	def readString(self):
-		string = self.readEntry()[:-1] # omit trailing null terminator
+	def readString(self, min_string_length = 4, max_string_length = 1000):
+		length = self.readUint32()
+		if not (min_string_length <= length <= max_string_length):
+			return None
+		b = self.f.read(length)
+		#if b[-1] != b'\x00':
+		#	return None
+		string = b[:-1] # omit trailing null terminator
 		try:
 			return string.decode('utf-8')
 		except:
 			return string
+
+	def is_at_string_begin(self, max_string_length = 1000):
+		pos = self.f.tell()
+		length = self.readUint32()
+		is_valid_string = False
+		if 4 < length <= max_string_length:
+			self.f.seek(length - 1, 1)
+			nullterminator = self.f.read(1)
+			is_valid_string = (nullterminator == b'\x00')
+		self.f.seek(pos)
+		s = self.peekString()
+		return is_valid_string and isinstance(s, str) and all(c in string.printable for c in s)
+
 
 	def peekString(self):
 		pos = self.f.tell()
@@ -369,18 +400,6 @@ class ARK_savegame_reader:
 			read_Function = getattr(self, 'read_X_' + '_'.join(components[1:]), None)
 		return read_Function
 
-	def is_at_string_begin(self, max_string_length = 1000):
-		pos = self.f.tell()
-		length = self.readUint32()
-		is_valid_string = False
-		if 4 < length <= max_string_length:
-			self.f.seek(length - 1, 1)
-			nullterminator = self.f.read(1)
-			is_valid_string = (nullterminator == b'\x00')
-		self.f.seek(pos)
-		s = self.peekString()
-		return is_valid_string and isinstance(s, str) and all(c in string.printable for c in s)
-
 	def get_regular_indexed_parameter(self, string_c):
 		self.readString_equals(string_c)
 		first_number = self.readUint32()
@@ -418,121 +437,56 @@ class ARK_savegame_reader:
 		return ('GameState', self.read_ObjectProperty('LastInAllyRangeTime'))
 		
 	def read_ObjectProperty(self, final_element = None):
-		assert final_element is not None, self.f.tell()
-		self.readString_equals('ObjectProperty')
-		self.nesting_depth += 1
-		object_type = self.readUint32()
-		n = []
-		while not self.is_at_string_begin():
-			n.append(self.readUint32())
-		self.print('ObjectProperty', object_type, n)
-		values = {}
-		last_property = (False, 0)
-		while last_property[0] != final_element:
-			name_and_property = self.read_NameAndProperty()
-			last_property = name_and_property
-			self.print(name_and_property)
-			values[name_and_property[0]] = name_and_property[1]
-		self.nesting_depth -= 1
-		return ('ObjectProperty', object_type, n, values)
+		return ('ObjectProperty', self.readUint32(), self.readUint32())
 
 	def read_IntProperty(self, name = None):
-		self.readString_equals('IntProperty')
-		# 4 bytes per int?
-		self.readUint32_equals(4) 
-		self.readUint32_equals(0) #little endian 8byte int?
-		i = self.readUint32()
-		return i
+		return self.readInt32()
 
 	def read_FloatProperty(self, name = None):
-		self.readString_equals('FloatProperty')
-		# 4 bytes per float?
-		self.readUint32_equals(4)
-		i = self.readUint32()
-		return ('FloatProperty', i, self.readFloat())
+		return ('FloatProperty', self.readFloat())
 
 
 	def read_DoubleProperty(self, name = None):
-		self.readString_equals('DoubleProperty')
-		# 8 bytes per double?
-		self.readUint32_equals(8)
-		self.readUint32_equals(0)
 		return self.readDouble()
 
 	def read_BoolProperty(self, name = None):
-		self.readString_equals('BoolProperty')
-		# 1 bytes per bool but 0 as vaule?
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
 		return self.readBool()
 
-	def read_None(self, name = None):
-		self.readString_equals('None')
-		self.readUint32_equals(0)
-		v = None
-		if not self.is_at_string_begin():
-			v = self.readUint32()
-		return ('None', v)
-
-	def read_NoneProperty(self, name = None):
-		return self.read_None()
-
 	def read_ByteProperty(self, name = None):
-		self.readString_equals('ByteProperty')
-		self.readUint32_equals(1)
-		index = self.readUint32()
 		self.readString_equals('None')
-		return ('ByteProperty', index, self.f.read(1))
+		return ('ByteProperty', self.f.read(1))
 
 	def read_UInt32Property(self, name = None):
-		self.readString_equals('UInt32Property')
-		self.readUint32_equals(4)
-		self.readUint32_equals(0)
 		return self.readUint32()
 
 	def read_NameProperty(self, name = None):
-		self.readString_equals('NameProperty')
-		self.readUint32_equals([0x14, 0x15, 0x16, 0x17])
-		self.readUint32_equals(0)
 		return self.readString()
 
 	def read_Int8Property(self, name = None):
-		self.readString_equals('Int8Property')
-		# number of bytes?
-		self.readUint32_equals(1)
-		self.readUint32_equals(1)
 		return ('Int8Property', self.readInt8())
 	
 	def read_StrProperty(self, name = None):
-		self.readString_equals('StrProperty')
-		self.readUint32_equals([9, 0xC, 0xd])
-		self.readUint32_equals(0)
 		return ('StrProperty', self.readString())
 
 	def read_UInt16Property(self, name = None):
-		self.readString_equals('UInt16Property')
-		self.readUint32_equals(2)
-		self.readUint32_equals(0)
 		return ('UInt16Property', self.readUint16())
 
+	def read_UInt64Property(self, name = None):
+		return ('UInt64Property', self.readUint64)
+
 	def read_ArrayProperty(self, name = None):
-		self.readString_equals('ArrayProperty')
+		property_type = self.readString()
 		number_of_entries = self.readUint32()
-		self.readUint32_equals(0)
-		self.print('ArrayProperty', number_of_entries)
-		entries = [self.read_XPropertyTypeAndValue(name) for i in range(number_of_entries)]
+		read_property_func = getattr(self, 'read_' + property_type, None)
+		entries = [read_property_func(None) for i in range(number_of_entries)]
 		return ('ArrayProperty', entries)
 
 	def read_StructProperty(self, name = None):
-		self.readString_equals('StructProperty')
-		number_of_entries = self.readUint32()
-		self.readUint32_equals(0)
 		name = self.readString()
-		entries = {}
+		entries = []
 		while self.peekString() != 'None':
 			name_and_property = self.read_NameAndProperty()
-			entries[name_and_property[0]] = name_and_property[1:]
-		self.readString_equals('None')
+			entries.append(name_and_property)
 		return ('StructProperty', name, entries)
 		
 
@@ -576,10 +530,9 @@ class ARK_savegame_reader:
 		self.readUint32_equals(1)
 		return ('TestGameMode', '(No mod?)')
 
-	def read_XPropertyTypeAndValue(self, name):
-		propertyType = self.peekString() #e.g. FloatProperty
-		read_property_func = getattr(self, 'read_' + propertyType, None)
-		assert read_property_func is not None, (propertyType, self.f.tell())
+	def read_XPropertyTypeAndValue(self, name, property_type):
+		read_property_func = getattr(self, 'read_' + property_type, None)
+		assert read_property_func is not None, (property_type, self.f.tell())
 		final_element = {'MyCharacterStatusComponent' : 'LastInAllyRangeTime',
 				'GameState' : 'LastInAllyRangeTime',
 				'MyInventoryComponent' : 'InventoryItems',
@@ -587,19 +540,42 @@ class ARK_savegame_reader:
 				'EquippedItems' : 'ItemId'}
 		return read_property_func(final_element[name] if name in final_element else None)
 
+	def read_bytes_until_next_string_begin(self):
+		b = b''
+		while not self.is_at_string_begin():
+			b += self.f.read(1)
+		return b
+
+
 	def read_NameAndProperty(self):
-		name = self.peekString()
+		name = self.readString()
+		b = None
+		if name is None:
+			b = self.read_bytes_until_next_string_begin()
+			name = self.readString()
 		if name == 'None':
-			return self.read_None()
+			return ('None', None)
 		else:
-			self.readString_equals(name)
-			return (name, self.read_XPropertyTypeAndValue(name))
+			property_type = self.readString()
+			assert property_type != None, (name, self.f.tell())
+			assert property_type.endswith('Property'), (name, property_type, self.f.tell())
+			size = self.readUint32()
+			if property_type == 'BoolProperty' and size == 0:
+				size = 1
+			index = self.readUint32()
+			next_pos = self.f.tell() + size
+			if property_type == 'ArrayProperty':
+				next_pos += len(self.peekString()) + 1
+			result = (name, b, index, self.read_XPropertyTypeAndValue(name, property_type))
+			self.f.seek(next_pos)
+			return result
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
 		initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
 		numberOfCells = self.readUint32()
+		print('{0} cells'.format(numberOfCells))
 		cells = [self.readRegion() for i in range(numberOfCells)]
 		if self.is_at_string_begin():
 			self.readString_equals('Matinee_WorldEnd')
@@ -607,14 +583,24 @@ class ARK_savegame_reader:
 			unknown_number= self.readUint32()
 		number_of_entries = self.readUint32()
 		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
+		print('{0} components'.format(number_of_entries))
 		#761fc
 		l = [self.read_Component() for i in range(number_of_entries)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		self.print('==== Reading properties ====')
 		# 011E:BDF0
-		for i in range(1000000):
+		for i in range(100000000):
 			self.print(i, self.read_NameAndProperty())
+
+	def readLocalPlayerArkProfile(self):
+		self.readUint32_equals(1)
+		self.readUint32_equals(1)
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		components = [self.read_Component() for i in range(1)]
+		print(components)
+
 
 	def print(self, *args, **kwargs):
 		print(sys._getframe(2).f_code.co_firstlineno, ':', self.nesting_depth, self.f.tell(), *args, **kwargs)
@@ -629,4 +615,7 @@ if __name__ == "__main__":
 		doctest.testmod()
 	else:
 		reader = ARK_savegame_reader(sys.argv[1])
-		reader.readFile()
+		if sys.argv[1].endswith('arkprofile'):
+			reader.readLocalPlayerArkProfile()	
+		else:
+			reader.readFile()
