@@ -12,10 +12,12 @@ class ARK_savegame_reader:
 		self.debug = debug
 		self.nesting_depth = 0
 
+	def read_X_Character_DNA_Harvester_C(self):
+                 return self.read_regular_indexed(0, 1, [0, 2, 3], 15)
+	def read_X_Character_BP_DNAHarvest_C(self):
+                 return self.read_regular_indexed(0, 1, [0, 3], 15)
 	def read_X_Character_BP_DNA_Harvester_C(self):
-                return self.read_regular_indexed(0, 1, [4, 0], 15)
-	def read_Bigfoot_Character_BP_DNA_Harvester_C(self):
-                 self.read_regular_indexed(0, 1, [4, 0], 15)
+                 return self.read_regular_indexed(0, 1, [0, 3, 4], 15)
 	def read_Ceiling_Door_Wood_SM_New_C(self):
 		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
 	def read_Ceiling_Doorway_Wood_SM_New_C(self):
@@ -78,6 +80,26 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_Ramp_Wood_SM_New_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_RaptorNest_BP_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
+	def read_Rounded_Ceiling_Stone_R_C(self):
+		return self.read_regular_indexed(0, 1, [0, 2, 1, 3], 15)
+	def read_Rounded_Ceiling_Stone_L_C(self):
+		return self.read_regular_indexed(0, 1, [0, 2, 1, 3], 15)
+	def read_Rounded_Doorframe_Stone_C(self):
+		return self.read_regular_indexed(0, 1, [0, 2, 1], 15)
+	def read_RoundedFloor_Stone_L_C(self):
+		return self.read_regular_indexed(0, 1, [1,0,2], 15)
+	def read_RoundedFloor_Stone_R_C(self):
+		return self.read_regular_indexed(0, 1, [1,0,2], 15)
+	def read_Rounded_Stone_Roof_BP_C(self):
+		return self.read_regular_indexed(0, 1, [0, 1, 2], 15)
+	def read_Rounded_Stone_Stairs_BP_C(self):
+		return self.read_regular_indexed(0, 1, [0, 1, 2], 15)
+	def read_Rounded_Wall_Stone_C(self):
+		return self.read_regular_indexed(0, 1, [0, 2, 1], 15)
+	def read_StoneRoof_SM_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_StoneWall_Sloped_Right_SM_C(self):
 		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 	def read_StoneWall_Sloped_Left_SM_C(self):
@@ -88,16 +110,27 @@ class ARK_savegame_reader:
 		self.readString_equals('StructurePaintingComponent')
 		number = self.readUint32()
 		self.readUint32_equals(2)
-		self.readString_equals('StructurePainting1')
-		indexed_structure = self.readString()
-		return ('StructurePaintingComponent', indexed_structure, self.f.read(9 * ARK_savegame_reader.WORD_SIZE))
+		first = self.readString()#'StructurePainting1')
+		if first.startswith('StructurePainting_'):
+			indexed_structure = first
+			data = None
+		else:
+			indexed_structure = self.readString()
+			data = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
+		return ('StructurePaintingComponent', indexed_structure, data)
 	def read_ThatchRoof_SM_C(self):
+		return self.read_regular_indexed(0, 1, 0, 15)
+	def read_Top_StoneM_C(self):
+		return self.read_regular_indexed(0, 1, [0, 1], 15)
+	def read_TrikeNest_BP_C(self):
 		return self.read_regular_indexed(0, 1, 0, 15)
 	def read_Wall_X_C(self):
 		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 	def read_WaterPipe_X_C(self):
 		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
 	def read_WeapFists_Female_C(self):
+		return self.read_regular_indexed(0, 1, [1, 0], 15)
+	def read_WindowRoundedWall_Stone_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
 	def read_WindowWall_X_C(self):
 		return self.read_regular_indexed(0, 1, [1, 0], 15)
@@ -146,6 +179,10 @@ class ARK_savegame_reader:
 	def readInt8(self):
 		int8_byte = self.f.read(1)
 		return struct.unpack('c', int8_byte)[0]
+
+	def readInt16(self):
+		int16_bytes = self.f.read(2)
+		return struct.unpack('h', int16_bytes)[0]
 
 	def readInt32(self):
 		int32_bytes = self.f.read(4)
@@ -350,7 +387,9 @@ class ARK_savegame_reader:
 		translation = {'AnvilBench_C' : 'StorageBox_AnvilBench_C',
 				'CropPlot_Medium_C' : 'CropPlotMedium_SM_C',
 				'WaterTank_C' : 'WaterTankBaseBP_C',
-				'Tap_C' : 'WaterTap_C_3' }
+				'Tap_C' : 'WaterTap_C_3',
+				'RaptorNest_C' : 'RaptorNest_BP_C_2',
+				'TrikeNest_C' : 'TrikeNest_BP_C_1' }
 		if expected_indexed in translation:
 			expected_indexed = translation[expected_indexed]
 		assert indexed.startswith(expected_indexed), (indexed, expected_indexed, self.f.tell())
@@ -453,8 +492,12 @@ class ARK_savegame_reader:
 		return self.readBool()
 
 	def read_ByteProperty(self, name = None):
-		self.readString_equals('None')
-		return ('ByteProperty', self.f.read(1))
+		type_name = self.readString()
+		if type_name == 'None':
+			value = self.f.read(1)
+		else:
+			value = self.readString()
+		return ('ByteProperty', value)
 
 	def read_UInt32Property(self, name = None):
 		return self.readUint32()
@@ -464,6 +507,9 @@ class ARK_savegame_reader:
 
 	def read_Int8Property(self, name = None):
 		return ('Int8Property', self.readInt8())
+
+	def read_Int16Property(self, name = None):
+		return ('Int16Property', self.readInt16())
 	
 	def read_StrProperty(self, name = None):
 		return ('StrProperty', self.readString())
@@ -564,11 +610,21 @@ class ARK_savegame_reader:
 				size = 1
 			index = self.readUint32()
 			next_pos = self.f.tell() + size
-			if property_type == 'ArrayProperty':
+			if property_type in ['ArrayProperty', 'ByteProperty']:
 				next_pos += len(self.peekString()) + 1
 			result = (name, b, index, self.read_XPropertyTypeAndValue(name, property_type))
 			self.f.seek(next_pos)
 			return result
+
+	def read_Setting(self):
+		self.readUint32_equals(1)
+		name = self.readString()
+		assert name.endswith('_settings'), (name, self.f.tell())
+		value = self.read_NameAndProperty()
+		self.print(value)
+		self.readString_equals('None')
+		self.readUint32_equals(0)
+		return (name, value)
 
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
@@ -588,10 +644,16 @@ class ARK_savegame_reader:
 		l = [self.read_Component() for i in range(number_of_entries)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
-		self.print('==== Reading properties ====')
-		# 011E:BDF0
-		for i in range(100000000):
-			self.print(i, self.read_NameAndProperty())
+		number_of_properties = 1878053
+		print('{0} properties'.format(number_of_properties))
+		properties = [self.read_NameAndProperty() for i in range(number_of_properties)]
+		self.readUint32_equals(0)
+		number_of_settings = self.readUint32()
+		print('{0} settings'.format(number_of_settings))
+		self.readUint32_equals(0)
+		self.readUint32_equals(0)
+		for i in range(number_of_settings):
+			self.print(i, self.read_Setting())
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
