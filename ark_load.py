@@ -630,18 +630,19 @@ class ARK_savegame_reader:
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
 		initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
-		numberOfCells = self.readUint32()
-		print('{0} cells'.format(numberOfCells))
-		cells = [self.readRegion() for i in range(numberOfCells)]
+		number_of_regions = self.readUint32()
+		print('{0} regions'.format(number_of_regions))
+		cells = [self.readRegion() for i in range(number_of_regions)]
 		if self.is_at_string_begin():
 			self.readString_equals('Matinee_WorldEnd')
 		else:
 			unknown_number= self.readUint32()
-		number_of_entries = self.readUint32()
+			print('unknown_number:'+str(unknown_number))
+		number_of_components = self.readUint32()
 		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
-		print('{0} components'.format(number_of_entries))
+		print('{0} components'.format(number_of_components))
 		#761fc
-		l = [self.read_Component() for i in range(number_of_entries)]
+		l = [self.read_Component() for i in range(number_of_components)]
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		number_of_properties = 1878053
