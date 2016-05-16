@@ -554,10 +554,8 @@ class ARK_savegame_reader:
 
 	def read_ArkGameMode(self):
 		self.readString_equals('ArkGameMode')
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		d = self.f.read(12 * ARK_savegame_reader.WORD_SIZE)#b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xB6\xF9\x1B\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+		d = struct.unpack('I'*15, self.f.read(15 * ARK_savegame_reader.WORD_SIZE))
+		print("GameMode Offset: ", d[9])
 		return ('ArkGameMode', d)
 
 	def read_TestGameMode_X_C(self):
