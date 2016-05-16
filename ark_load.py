@@ -280,27 +280,14 @@ class ARK_savegame_reader:
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(number_of_trailing_words * ARK_savegame_reader.WORD_SIZE)
-		return (descriptor, index, d)
-
-		
+		unpacked = struct.unpack('f'*number_of_trailing_words, d)
+		return (descriptor, index, unpacked, d)
 
 	def read_ShooterGameState(self):
-		self.readString_equals('ShooterGameState')
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		self.readString_equals('ShooterGameState_0')
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return 'ShooterGameState', d
+		return self.read_regular_indexed(0, 1, 0, 9)
 
 	def read_InstancedFoliageActor(self):
-		self.readString_equals('InstancedFoliageActor')
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		indexed = self.readString()
-		assert indexed.startswith('InstancedFoliageActor_'), (indexed, self.f.tell())
-		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
-		return ('InstanceFoliageActor', index, d)
+		return self.read_regular_indexed(0, 1, 0, 15)
 
 	def read_MatineeActor(self):
 		self.readString_equals('MatineeActor')
@@ -338,7 +325,8 @@ class ARK_savegame_reader:
 		instance = self.readString()
 		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
 		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return ('DinoCharacterStatusComponent', X, d)
+		data = struct.unpack('I'*9, d)
+		return ('DinoCharacterStatusComponent', X, data, d)
 			
 		
 	def read_X_Character_BP_C(self):
@@ -349,7 +337,8 @@ class ARK_savegame_reader:
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
-		return (dino, index, d)
+		data = struct.unpack('IIIffffffIIIIII', d)
+		return (dino, index, number, {'pos': {'x' : data[3], 'y' : data[4], 'z' : data [5]}, 'rot' : {'x' :data[6], 'y' : data[7], 'z' : data[8]}}, data, d)
 	
 	def read_X_Character_C(self):
 		character = self.readString()
@@ -359,6 +348,7 @@ class ARK_savegame_reader:
 		indexed = self.readString() #
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
+		data = struct.unpack('f'*15, d)
 		return (dino, index, d)
 
 
@@ -642,12 +632,30 @@ class ARK_savegame_reader:
 		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
 		print('{0} components'.format(number_of_components))
 		#761fc
-		l = [self.read_Component() for i in range(number_of_components)]
+		components = [self.read_Component() for i in range(number_of_components)]
+		dino_status_component_count = 0
+		files = {}
+		for x in components:
+			if len(x) >= 4 and isinstance(x[3], dict) and 'pos' in x[3]:
+				pos = x[3]['pos']
+				name = x[0]
+				if name not in files:
+					files[name] = open(name+'.txt', 'w')
+				files[name].write('{0}\t{1}\t{2}\n'.format(pos['x'], pos['y'], pos['z']))
+			elif 'CharacterStatusComponent' in x[0]:
+				dino_status_component_count += 1
+		for f in files.values():
+			f.close()
 		# somehow the last entry (FoliageActor) has 4 Words less at the end?
 		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
 		number_of_properties = 1878053
 		print('{0} properties'.format(number_of_properties))
 		properties = [self.read_NameAndProperty() for i in range(number_of_properties)]
+		my_character_status_component_count = 0
+		for p in properties:
+			if 'CharacterStatusComponent' in p[0]:
+				my_character_status_component_count += 1
+		print(dino_status_component_count, my_character_status_component_count)
 		self.readUint32_equals(0)
 		number_of_settings = self.readUint32()
 		print('{0} settings'.format(number_of_settings))
