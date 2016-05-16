@@ -464,15 +464,18 @@ class ARK_savegame_reader:
 
 	def read_Component(self):
 		string = self.peekString()
-		read_Function = self.get_Component_read_function(string)
-		if read_Function:
-			return read_Function()
+		if not string == None:
+			read_Function = self.get_Component_read_function(string)
+			if read_Function:
+				return read_Function()
+			else:
+				try:
+					return self.try_read_component()
+				except:
+					string = self.get_regular_indexed_parameter(string)
+					assert not "Unknown component", (string, self.f.tell())
 		else:
-			try:
-				return self.try_read_component()
-			except:
-				string = self.get_regular_indexed_parameter(string)
-				assert not "Unknown component", (string, self.f.tell())
+			assert not "Not at string begin", (self.f.tell(), )
 
 	def read_GameState(self):
 		self.readString_equals('GameState')
