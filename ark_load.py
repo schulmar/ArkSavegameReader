@@ -270,11 +270,14 @@ class ARK_savegame_reader:
 			   		descriptor_index,
 					number_of_trailing_words):
 		character = self.readString()
-		if isinstance(descriptor_index, list):
-			split = character.split('_')
-			descriptor = ' '.join([split[i] for i in descriptor_index])
+		if descriptor_index is None:
+			descriptor = character
 		else:
-			descriptor = character.split('_')[descriptor_index]
+			if isinstance(descriptor_index, list):
+				split = character.split('_')
+				descriptor = ' '.join([split[i] for i in descriptor_index])
+			else:
+				descriptor = character.split('_')[descriptor_index]
 		self.readUint32_equals(expected_value_of_first_uint)
 		self.readUint32_equals(expected_value_of_second_uint)
 		indexed = self.readString()
@@ -452,14 +455,28 @@ class ARK_savegame_reader:
 			return 'self.read_{2}(self):\n\t\t self.read_regular_indexed({0}, {1}, {2}, {3})'.format(first_number, second_number, string_c, length)
 		return (string_c, 'following string is no _C string:', next_string )
 
+	def try_read_component(self):
+		for args in [(0, 1, None, 15), (0, 1, None, 9)]:
+			oldPos = self.f.tell()
+			result = self.read_regular_indexed(*args)
+			if self.is_at_string_begin():
+				return result
+			else:
+				print('Not %0: %1'%(args[3], self.f.read(10)) )
+			self.f.seek(oldPos)
+		raise "Don't know how to read component"
+
 	def read_Component(self):
 		string = self.peekString()
 		read_Function = self.get_Component_read_function(string)
 		if read_Function:
 			return read_Function()
 		else:
-			string = self.get_regular_indexed_parameter(string)
-			assert not "Unknown component", (string, self.f.tell())
+			try:
+				return self.try_read_component()
+			except:
+				string = self.get_regular_indexed_parameter(string)
+				assert not "Unknown component", (string, self.f.tell())
 
 	def read_GameState(self):
 		self.readString_equals('GameState')
