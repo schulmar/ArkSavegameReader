@@ -385,7 +385,11 @@ class ARK_savegame_reader:
 		return self.read_regular_indexed(0, 1, [0, 1], 15)
 				
 	def read_X_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
+		s = self.peekString()
+		if s.startswith('PrimalItemConsumableSoap'):
+			return self.read_regular_indexed(1, 1, 0, 9)
+		else:
+			return self.read_regular_indexed(0, 1, 0, 15)
 
 	def read_PlayerCharacterStatusComponent_BP_C(self):
 		self.readString_equals('PlayerCharacterStatusComponent_BP_C')
