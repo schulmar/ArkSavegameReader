@@ -369,23 +369,15 @@ class ARK_savegame_reader:
 
 	def read_PrimalInventoryBP_X_C(self):
 		character = self.readString()
-		name = ' '.join(character.split('_')[1:-1])
+		split = character.split('_')
+		name = ' '.join(split[1:-1])
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		C1_string = self.readString()
-		assert C1_string.startswith(character + '1'), (C1_string, character, self.f.tell())
+		assert C1_string.startswith(character) and C1_string.endswith(('1','2')), (C1_string, character, self.f.tell())
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
-		expected_indexed = '_'.join(character.split('_')[1:])
-		translation = {'AnvilBench_C' : 'StorageBox_AnvilBench_C',
-				'CropPlot_Medium_C' : 'CropPlotMedium_SM_C',
-				'WaterTank_C' : 'WaterTankBaseBP_C',
-				'Tap_C' : 'WaterTap_C_3',
-				'RaptorNest_C' : 'RaptorNest_BP_C_2',
-				'TrikeNest_C' : 'TrikeNest_BP_C_1' }
-		if expected_indexed in translation:
-			expected_indexed = translation[expected_indexed]
-		assert indexed.startswith(expected_indexed), (indexed, expected_indexed, self.f.tell())
+		assert split[1] in indexed, (character, indexed, self.f.tell())
 		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		return (name, index, d)
 
