@@ -699,8 +699,13 @@ if __name__ == "__main__":
 		import doctest
 		doctest.testmod()
 	else:
-		reader = ARK_savegame_reader(sys.argv[1])
-		if sys.argv[1].endswith('arkprofile'):
+		filename = sys.argv[1]
+		debug = False
+		if len(sys.argv) > 2 and sys.argv[1] == "debug":
+			filename = sys.argv[2]
+			debug = True
+		reader = ARK_savegame_reader(filename, debug)
+		if filename.endswith('arkprofile'):
 			reader.readLocalPlayerArkProfile()	
 		else:
 			reader.readFile()
