@@ -284,7 +284,11 @@ class ARK_savegame_reader:
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(number_of_trailing_words * ARK_savegame_reader.WORD_SIZE)
 		unpacked = struct.unpack('f'*number_of_trailing_words, d)
-		return (descriptor, index, unpacked, d)
+		unpackedints = struct.unpack('I'*number_of_trailing_words, d)
+		properties = []
+		if number_of_trailing_words > 9:
+			properties = [self.read_property_at(unpackedints[9])]
+		return (descriptor, index, unpacked, d, properties)
 
 	def read_ShooterGameState(self):
 		return self.read_regular_indexed(0, 1, 0, 9)
@@ -329,7 +333,13 @@ class ARK_savegame_reader:
 		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
 		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
 		data = struct.unpack('I'*9, d)
-		return ('DinoCharacterStatusComponent', X, data, d)
+		properties = None
+		try:
+			pos = self.f.tell()
+			properties = self.read_properties_at(data[3], None)
+		except Exception as e:
+			raise Exception("While handling", X, "at", pos, e)
+		return ('DinoCharacterStatusComponent', X, data, d, properties)
 			
 		
 	def read_X_Character_BP_C(self):
@@ -341,7 +351,12 @@ class ARK_savegame_reader:
 		index = int(indexed.split('_')[-1])
 		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
 		data = struct.unpack('IIIffffffIIIIII', d)
-		return (dino, index, number, {'pos': {'x' : data[3], 'y' : data[4], 'z' : data [5]}, 'rot' : {'x' :data[6], 'y' : data[7], 'z' : data[8]}}, data, d)
+		properties=None
+		try:
+			properties = self.read_properties_at(data[9], None)
+		except Exception as e:
+			raise Exception(character, self.f.tell(), e)
+		return (dino, index, number, {'pos': {'x' : data[3], 'y' : data[4], 'z' : data [5]}, 'rot' : {'x' :data[6], 'y' : data[7], 'z' : data[8]}}, data, d, properties)
 	
 	def read_X_Character_C(self):
 		character = self.readString()
@@ -374,7 +389,7 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		self.readUint32_equals(2)
 		C1_string = self.readString()
-		assert C1_string.startswith(character) and C1_string.endswith(('1','2')), (C1_string, character, self.f.tell())
+		assert C1_string.startswith(character) , (C1_string, character, self.f.tell())#and C1_string.endswith(('1','2'))
 		indexed = self.readString()
 		index = int(indexed.split('_')[-1])
 		assert split[1] in indexed, (character, indexed, self.f.tell())
@@ -471,6 +486,8 @@ class ARK_savegame_reader:
 			else:
 				try:
 					return self.try_read_component()
+				except AssertionError:
+					raise
 				except:
 					string = self.get_regular_indexed_parameter(string)
 					assert not "Unknown component", (string, self.f.tell())
@@ -555,8 +572,12 @@ class ARK_savegame_reader:
 	def read_ArkGameMode(self):
 		self.readString_equals('ArkGameMode')
 		d = struct.unpack('I'*15, self.f.read(15 * ARK_savegame_reader.WORD_SIZE))
-		print("GameMode Offset: ", d[9])
-		return ('ArkGameMode', d)
+		properties = None
+		try:
+			properties = self.read_properties_at(d[9], None)
+		except Exception as e:
+			raise Exception("While handling ArkGameMode at", self.f.tell(),"reading", d[9], e)
+		return ('ArkGameMode', d, properties)
 
 	def read_TestGameMode_X_C(self):
 		mod_component = self.readString()
@@ -620,6 +641,33 @@ class ARK_savegame_reader:
 			self.f.seek(next_pos)
 			return result
 
+	def read_property_at(self, location):
+		oldpos = self.f.tell()
+		try:
+			self.f.seek(location)
+			result = self.read_NameAndProperty()
+			return result
+		finally:
+			self.f.seek(oldpos)
+
+	"""
+	If count == None then read until a None is hit
+	"""
+	def read_properties_at(self, location, count):
+		oldpos = self.f.tell()
+		try:
+			self.f.seek(location)
+			if count == None:
+				result = []
+				while self.peekString() != None:
+					result.append(self.read_NameAndProperty())
+				return result
+			else:
+				return [self.read_NameAndProperty() for _ in range(count)]
+		finally:
+			self.f.seek(oldpos)
+	
+
 	def read_Setting(self):
 		self.readUint32_equals(1)
 		name = self.readString()
@@ -634,6 +682,8 @@ class ARK_savegame_reader:
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
 		initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
+		if self.debug:
+			print('Initial entries: {0}'.format(initialEntries))
 		number_of_regions = self.readUint32()
 		print('{0} regions'.format(number_of_regions))
 		cells = [self.readRegion() for i in range(number_of_regions)]
@@ -642,11 +692,19 @@ class ARK_savegame_reader:
 		else:
 			unknown_number= self.readUint32()
 			print('unknown_number:'+str(unknown_number))
-		number_of_components = self.readUint32()
-		self.readBytes_equals(b'}@=6\xf6\xef\x00I\xba\x95\xc8\xa6\xc8\xdc(\xdf')
-		print('{0} components'.format(number_of_components))
-		#761fc
-		components = [self.read_Component() for i in range(number_of_components)]
+		number_of_entries = self.readUint32()
+		randomBytes = self.f.read(16)
+		components = []
+		for i in range(number_of_entries):
+			loc = self.f.tell()
+			# sometimes the trailing entry does not fit?
+			try:
+				components.append(self.read_Component())
+			except AssertionError as e:
+				raise Exception(e, loc)
+			except Exception as e:
+				print("Could not read component at ", self.f.tell(), ":", e)
+				break
 		dino_status_component_count = 0
 		files = {}
 		for x in components:
@@ -660,23 +718,9 @@ class ARK_savegame_reader:
 				dino_status_component_count += 1
 		for f in files.values():
 			f.close()
-		# somehow the last entry (FoliageActor) has 4 Words less at the end?
-		self.f.seek(-4 * ARK_savegame_reader.WORD_SIZE, 1)
-		number_of_properties = 1878053
-		print('{0} properties'.format(number_of_properties))
-		properties = [self.read_NameAndProperty() for i in range(number_of_properties)]
-		my_character_status_component_count = 0
-		for p in properties:
-			if 'CharacterStatusComponent' in p[0]:
-				my_character_status_component_count += 1
-		print(dino_status_component_count, my_character_status_component_count)
-		self.readUint32_equals(0)
-		number_of_settings = self.readUint32()
-		print('{0} settings'.format(number_of_settings))
-		self.readUint32_equals(0)
-		self.readUint32_equals(0)
-		for i in range(number_of_settings):
-			self.print(i, self.read_Setting())
+		for component in components: 
+			print(component)
+		print("#Components:", len(components))
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
