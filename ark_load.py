@@ -11,144 +11,11 @@ class ARK_savegame_reader:
 		self.f = open(file_name, 'rb') if file_name else None
 		self.debug = debug
 		self.nesting_depth = 0
-
-	def read_X_Character_DNA_Harvester_C(self):
-                 return self.read_regular_indexed(0, 1, [0, 2, 3], 15)
-	def read_X_Character_BP_DNAHarvest_C(self):
-                 return self.read_regular_indexed(0, 1, [0, 3], 15)
-	def read_X_Character_BP_DNA_Harvester_C(self):
-                 return self.read_regular_indexed(0, 1, [0, 3, 4], 15)
-	def read_Ceiling_Door_Wood_SM_New_C(self):
-		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
-	def read_Ceiling_Doorway_Wood_SM_New_C(self):
-		return self.read_regular_indexed(0, 1, [2, 0, 1], 15)
-	def read_Ceiling_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_CropPlotMedium_SM_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_Door_X_C(self):
-		return self.read_regular_indexed(0, 1, [0, 1], 15)		
-	def read_Doorframe_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_FenceFoundation_Wood_SM_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_Fence_StoneM_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_FenceFoundation_Stone_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_Floor_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_Gate_X_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_GateFrame_X_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_Monkey_Character_BP_DNA_Harvester_C(self):
-		return self.read_regular_indexed(0, 1, [4, 0, 1], 15)
-	def read_Pillar_Wood_SM_New_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_PlayerPawnTest_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_PrimalItem_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemAmmo_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemArmor_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemConsumable_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemConsumableBuff_Parachute_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemConsumableMiracleGro_C(self):
-		return self.read_regular_indexed(1, 1, 0, 9)
-	def read_PrimalItemConsumableRespecSoup_C(self):
-		return self.read_regular_indexed(1, 1, 0, 9)
-	def read_PrimalItemDye_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemRadio_C(self):
-		return self.read_regular_indexed(1, 1, 0, 9)
-	def read_PrimalItemRaft_C(self):
-		return self.read_regular_indexed(1, 1, 0, 9)
-	def read_PrimalItemResource_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemSkin_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemWeaponAttachment_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_PrimalItemStructure_X_C(self):
-		return self.read_regular_indexed(1, 1, 1, 9)
-	def read_Raft_BP_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_Ramp_Wood_SM_New_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_RaptorNest_BP_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_Rounded_Ceiling_Stone_R_C(self):
-		return self.read_regular_indexed(0, 1, [0, 2, 1, 3], 15)
-	def read_Rounded_Ceiling_Stone_L_C(self):
-		return self.read_regular_indexed(0, 1, [0, 2, 1, 3], 15)
-	def read_Rounded_Doorframe_Stone_C(self):
-		return self.read_regular_indexed(0, 1, [0, 2, 1], 15)
-	def read_RoundedFloor_Stone_L_C(self):
-		return self.read_regular_indexed(0, 1, [1,0,2], 15)
-	def read_RoundedFloor_Stone_R_C(self):
-		return self.read_regular_indexed(0, 1, [1,0,2], 15)
-	def read_Rounded_Stone_Roof_BP_C(self):
-		return self.read_regular_indexed(0, 1, [0, 1, 2], 15)
-	def read_Rounded_Stone_Stairs_BP_C(self):
-		return self.read_regular_indexed(0, 1, [0, 1, 2], 15)
-	def read_Rounded_Wall_Stone_C(self):
-		return self.read_regular_indexed(0, 1, [0, 2, 1], 15)
-	def read_StoneRoof_SM_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_StoneWall_Sloped_Right_SM_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_StoneWall_Sloped_Left_SM_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_StorageBox_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_StructurePaintingComponent(self):
-		self.readString_equals('StructurePaintingComponent')
-		number = self.readUint32()
-		self.readUint32_equals(2)
-		first = self.readString()#'StructurePainting1')
-		if first.startswith('StructurePainting_'):
-			indexed_structure = first
-			data = None
-		else:
-			indexed_structure = self.readString()
-			data = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return ('StructurePaintingComponent', indexed_structure, data)
-	def read_ThatchRoof_SM_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_Top_StoneM_C(self):
-		return self.read_regular_indexed(0, 1, [0, 1], 15)
-	def read_TrikeNest_BP_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_Wall_X_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_WaterPipe_X_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_WeapFists_Female_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_WindowRoundedWall_Stone_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_WindowWall_X_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_Window_Wood_BP_C(self):
-		return self.read_regular_indexed(0, 1, [1, 0], 15)
-	def read_WoodRoof_SM_C(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-	def read_WoodWall_Sloped_Left_SM_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-	def read_WoodWall_Sloped_Right_SM_C(self):
-		return self.read_regular_indexed(0, 1, [2, 1, 0], 15)
-
 	def peekBytes(self, number):
 		pos = self.f.tell()
 		result = self.f.read(number)
 		self.f.seek(pos)
 		return result 
-
 
 	def readUint32(self):
 		uint_bytes = self.f.read(4)
@@ -265,10 +132,7 @@ class ARK_savegame_reader:
 		read_value = self.readString()
 		assert read_value == expected_value, ('"{0}" == "{1}"'.format(read_value, expected_value), self.f.tell())
 
-	def read_regular_indexed(self, expected_value_of_first_uint, 
-					expected_value_of_second_uint,
-			   		descriptor_index,
-					number_of_trailing_words):
+	def read_regular_indexed(self, descriptor_index, number_of_trailing_words):
 		character = self.readString()
 		if descriptor_index is None:
 			descriptor = character
@@ -278,170 +142,40 @@ class ARK_savegame_reader:
 				descriptor = ' '.join([split[i] for i in descriptor_index])
 			else:
 				descriptor = character.split('_')[descriptor_index]
-		self.readUint32_equals(expected_value_of_first_uint)
-		self.readUint32_equals(expected_value_of_second_uint)
+		self.readUint32_equals([0, 1])
+		second_uint = self.readUint32()
 		indexed = self.readString()
-		index = int(indexed.split('_')[-1])
+		index = None
+		try:
+			index = int(indexed.split('_')[-1])
+		except:
+			pass
+		secondString = self.readString() if second_uint == 2 else None
 		d = self.f.read(number_of_trailing_words * ARK_savegame_reader.WORD_SIZE)
 		unpacked = struct.unpack('f'*number_of_trailing_words, d)
 		unpackedints = struct.unpack('I'*number_of_trailing_words, d)
 		properties = []
 		if number_of_trailing_words > 9:
-			properties = [self.read_property_at(unpackedints[9])]
-		return (descriptor, index, unpacked, d, properties)
-
-	def read_ShooterGameState(self):
-		return self.read_regular_indexed(0, 1, 0, 9)
-
-	def read_InstancedFoliageActor(self):
-		return self.read_regular_indexed(0, 1, 0, 15)
-
-	def read_MatineeActor(self):
-		self.readString_equals('MatineeActor')
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		self.readString_equals('Matinee_DayTime')
-		d = self.f.read(15*ARK_savegame_reader.WORD_SIZE)
-		return 'MatineeActor', d
-
-	def read_DinoCharacterStatusComponent_BP_X_C(self, X = None):
-		if X is None:
-			string = self.peekString()
-			transform = {'C':'Coel'}
-			X = string.split('_')[2]
-			if X in transform:
-				X = transform[X]
-		fixup = {'Megalodon':'Mega'}
-		if X in fixup:
-			X = fixup[X]
-		if X == 'Coel':
-			self.readString_equals('DinoCharacterStatusComponent_BP_C'.format(X))
-			self.readUint32_equals(0)
-			self.readUint32_equals(2)
-			s = self.readString()
-			assert s.startswith('DinoCharacterStatus_BP_C'.format(X)), (s, self.f.tell())
+			properties = [self.read_properties_at(unpackedints[9], None)]
 		else:
-			self.readString_equals('DinoCharacterStatusComponent_BP_{0}_C'.format(X))
-			self.readUint32_equals(0)
-			self.readUint32_equals(2)
-			s = self.readString()
-			fixup = {'Ankylo':'Anklyo', }
-			if X in fixup:
-				X = fixup[X]
-			assert s.startswith('DinoCharacterStatus_BP_{0}_C'.format(X)), (s, self.f.tell())
-		instance = self.readString()
-		#assert instance.startswith(X + '_Character'), (instance, X) Anklyo Ankylo problem
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		data = struct.unpack('I'*9, d)
-		properties = None
-		try:
-			pos = self.f.tell()
-			properties = self.read_properties_at(data[3], None)
-		except Exception as e:
-			raise Exception("While handling", X, "at", pos, e)
-		return ('DinoCharacterStatusComponent', X, data, d, properties)
-			
-		
-	def read_X_Character_BP_C(self):
-		character = self.readString()
-		dino = character.split('_')[0]
-		self.readUint32_equals(0)
-		number = self.readUint32()
-		indexed = self.readString() #
-		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
-		data = struct.unpack('IIIffffffIIIIII', d)
-		properties=None
-		try:
-			properties = self.read_properties_at(data[9], None)
-		except Exception as e:
-			raise Exception(character, self.f.tell(), e)
-		return (dino, index, number, {'pos': {'x' : data[3], 'y' : data[4], 'z' : data [5]}, 'rot' : {'x' :data[6], 'y' : data[7], 'z' : data[8]}}, data, d, properties)
-	
-	def read_X_Character_C(self):
-		character = self.readString()
-		dino = character.split('_')[0]
-		self.readUint32_equals(0)
-		number = self.readUint32()
-		indexed = self.readString() #
-		index = int(indexed.split('_')[-1])
-		d = self.f.read(15 * ARK_savegame_reader.WORD_SIZE)
-		data = struct.unpack('f'*15, d)
-		return (dino, index, d)
-
-
-	def read_DinoTamedInventoryComponent_X_C(self):
-		character = self.readString()
-		dino = character.split('_')[1]
-		self.readUint32_equals(0)
-		self.readUint32_equals(2)
-		inventory_indexed = self.readString()
-		assert inventory_indexed.startswith((character)), (inventory_indexed, character, self.f.tell())
-		dino_name_index = self.readString()
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return (dino_name_index, 'TamedInventory', d)
-
-
-	def read_PrimalInventoryBP_X_C(self):
-		character = self.readString()
-		split = character.split('_')
-		name = ' '.join(split[1:-1])
-		self.readUint32_equals(0)
-		self.readUint32_equals(2)
-		C1_string = self.readString()
-		assert C1_string.startswith(character) , (C1_string, character, self.f.tell())#and C1_string.endswith(('1','2'))
-		indexed = self.readString()
-		index = int(indexed.split('_')[-1])
-		assert split[1] in indexed, (character, indexed, self.f.tell())
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return (name, index, d)
-
-	def read_Thatch_X_C(self):
-		return self.read_regular_indexed(0, 1, [0, 1], 15)
-				
-	def read_X_C(self):
-		s = self.peekString()
-		if s.startswith('PrimalItemConsumableSoap'):
-			return self.read_regular_indexed(1, 1, 0, 9)
-		else:
-			return self.read_regular_indexed(0, 1, 0, 15)
-
-	def read_PlayerCharacterStatusComponent_BP_C(self):
-		self.readString_equals('PlayerCharacterStatusComponent_BP_C')
-		self.readUint32_equals(0)
-		self.readUint32_equals(2)
-		self.readString_equals('PlayerCharacterStatus')
-		string = self.readString()
-		string.startswith('PlayerPawnTest_')
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		c = self.read_PrimalInventoryComponent()
-		return 'PlayerCharacterStatusComponent', string, d, c
-		
-	def read_PrimalInventoryComponent(self):
-		self.readString_equals('PrimalInventoryComponent')
-		self.readUint32_equals(0)
-		self.readUint32_equals(2)
-		self.readString_equals('PrimalInventory1')
-		string = self.readString()
-		d = self.f.read(9*ARK_savegame_reader.WORD_SIZE)
-		return 'PrimalInventoryComponent', string, d
+			properties = [self.read_properties_at(unpackedints[3], None)]
+		return (descriptor, index, secondString, unpacked, d, properties)
 
 	def get_Component_read_function(self, string):
 		'''
 		>>> ARK_savegame_reader(None).get_Component_read_function('DinoCharacterStatusComponent_BP_Monkey_C')
 		'''
-		read_Function = getattr(self, 'read_' + string, None)
+		read_function = getattr(self, 'read_' + string, None)
 		components = string.split('_')
 		#import pdb; pdb.set_trace()
-		if not read_Function and len(components) == 2:
-			read_Function = self.read_X_C
-		if not read_Function:
-			read_Function = getattr(self, 'read_' + components[0] + '_X_C', None)
-		if not read_Function:
-			read_Function = getattr(self, 'read_' + '_'.join(components[0:2]) + '_X_C', None)
-		if not read_Function:
-			read_Function = getattr(self, 'read_X_' + '_'.join(components[1:]), None)
-		return read_Function
+		if not read_function:
+			for i in range(len(components)):
+				func_name = 'read_{0}_C'.format(
+					'_'.join(components[0:i-1] + ['X'] + components[i+1:-2]))
+				read_function = getattr(self, func_name, None)
+				if read_function != None:
+					return read_function
+		return read_function
 
 	def get_regular_indexed_parameter(self, string_c):
 		self.readString_equals(string_c)
@@ -463,19 +197,26 @@ class ARK_savegame_reader:
 			return (string_c, 'no following string')
 		next_string = self.readString()
 		if next_string and next_string.endswith('_C'):
-			return 'self.read_{2}(self):\n\t\t self.read_regular_indexed({0}, {1}, {2}, {3})'.format(first_number, second_number, string_c, length)
+			return 'self.read_{2}(self):\n\t\t self.read_regular_indexed({0}, {1})'.format(string_c, length)
 		return (string_c, 'following string is no _C string:', next_string )
 
 	def try_read_component(self):
-		for args in [(0, 1, None, 15), (0, 1, None, 9)]:
+		errors = []
+		# try shortest first to not read over following components
+		for length in [9, 11, 15]:
 			oldPos = self.f.tell()
-			result = self.read_regular_indexed(*args)
-			if self.is_at_string_begin():
-				return result
-			else:
-				print('Not %0: %1'%(args[3], self.f.read(10)) )
-			self.f.seek(oldPos)
-		raise "Don't know how to read component"
+			try:
+				result = self.read_regular_indexed(None, length)
+				if self.is_at_string_begin():
+					return result
+				else:
+					print('Not %0: %1'%(lentgh, self.f.read(10)))
+					self.f.seek(oldPos)
+			except Exception as e:
+				self.f.seek(oldPos)
+				errors.append((length, e))
+				continue
+		raise Exception("Don't know how to read component:", errors)
 
 	def read_Component(self):
 		string = self.peekString()
@@ -488,16 +229,13 @@ class ARK_savegame_reader:
 					return self.try_read_component()
 				except AssertionError:
 					raise
-				except:
+				except Exception as e:
+					pos = self.f.tell()
 					string = self.get_regular_indexed_parameter(string)
-					assert not "Unknown component", (string, self.f.tell())
+					raise Exception("Unknown component", string, e, pos)
 		else:
 			assert not "Not at string begin", (self.f.tell(), )
 
-	def read_GameState(self):
-		self.readString_equals('GameState')
-		return ('GameState', self.read_ObjectProperty('LastInAllyRangeTime'))
-		
 	def read_ObjectProperty(self, final_element = None):
 		return ('ObjectProperty', self.readUint32(), self.readUint32())
 
@@ -558,52 +296,9 @@ class ARK_savegame_reader:
 			entries.append(name_and_property)
 		return ('StructProperty', name, entries)
 		
-
-	def read_StaticMeshComponent(self):
-		character = self.readString()
-		self.readUint32_equals(0)
-		self.readUint32_equals(2)
-		indexed = self.readString()
-		assert indexed.startswith(character), (indexed, character, self.f.tell())
-		contains_indexed = self.readString()
-		d = self.f.read(9 * ARK_savegame_reader.WORD_SIZE)
-		return ('StaticMeshCompoment', contains_indexed, d)
-
-	def read_ArkGameMode(self):
-		self.readString_equals('ArkGameMode')
-		d = struct.unpack('I'*15, self.f.read(15 * ARK_savegame_reader.WORD_SIZE))
-		properties = None
-		try:
-			properties = self.read_properties_at(d[9], None)
-		except Exception as e:
-			raise Exception("While handling ArkGameMode at", self.f.tell(),"reading", d[9], e)
-		return ('ArkGameMode', d, properties)
-
-	def read_TestGameMode_X_C(self):
-		mod_component = self.readString()
-		assert mod_component.startswith('TestGameMode_'), (mod_component, self.f.tell())
-		mod_name = mod_component.split('_')[1]
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		return ('TestGameMode', mod_name)
-
-	def read_GameMode_X_C(self):
-		game_component = self.readString()
-		assert game_component.startswith('GameMode_'), (game_component, self.f.tell())
-		game_name = game_component.split('_')[1]
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		return ('GameMode', game_name)
-
-	def read_TestGameMode_C(self):
-		self.readString_equals('TestGameMode_C')
-		self.readUint32_equals(0)
-		self.readUint32_equals(1)
-		return ('TestGameMode', '(No mod?)')
-
 	def read_XPropertyTypeAndValue(self, name, property_type):
 		read_property_func = getattr(self, 'read_' + property_type, None)
-		assert read_property_func is not None, (property_type, self.f.tell())
+		assert read_property_func is not None, ("No property func for ",property_type, self.f.tell())
 		final_element = {'MyCharacterStatusComponent' : 'LastInAllyRangeTime',
 				'GameState' : 'LastInAllyRangeTime',
 				'MyInventoryComponent' : 'InventoryItems',
@@ -628,8 +323,8 @@ class ARK_savegame_reader:
 			return ('None', None)
 		else:
 			property_type = self.readString()
-			assert property_type != None, (name, self.f.tell())
-			assert property_type.endswith('Property'), (name, property_type, self.f.tell())
+			assert property_type != None, ("Could not read property type of ", name, self.f.tell())
+			assert property_type.endswith('Property'), ("Property type name does not end with 'Property'", name, property_type, self.f.tell())
 			size = self.readUint32()
 			if property_type == 'BoolProperty' and size == 0:
 				size = 1
@@ -671,7 +366,7 @@ class ARK_savegame_reader:
 	def read_Setting(self):
 		self.readUint32_equals(1)
 		name = self.readString()
-		assert name.endswith('_settings'), (name, self.f.tell())
+		assert name.endswith('_settings'), ("Setting does not end with _settings", name, self.f.tell())
 		value = self.read_NameAndProperty()
 		self.print(value)
 		self.readString_equals('None')
@@ -720,7 +415,7 @@ class ARK_savegame_reader:
 			f.close()
 		for component in components: 
 			print(component)
-		print("#Components:", len(components))
+		print("#Components:", len(components), ", expected:", number_of_entries)
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
