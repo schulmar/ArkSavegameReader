@@ -152,14 +152,14 @@ class ARK_savegame_reader:
 			pass
 		secondString = self.readString() if second_uint == 2 else None
 		d = self.f.read(number_of_trailing_words * ARK_savegame_reader.WORD_SIZE)
-		unpacked = struct.unpack('f'*number_of_trailing_words, d)
-		unpackedints = struct.unpack('I'*number_of_trailing_words, d)
+		unpacked_floats = struct.unpack('f'*number_of_trailing_words, d)
+		unpacked_ints = struct.unpack('I'*number_of_trailing_words, d)
 		properties = []
 		if number_of_trailing_words > 9:
-			properties = [self.read_properties_at(unpackedints[9], None)]
+			properties = self.read_properties_at(unpacked_ints[9], None)
 		else:
-			properties = [self.read_properties_at(unpackedints[3], None)]
-		return (descriptor, index, secondString, unpacked, d, properties)
+			properties = self.read_properties_at(unpacked_ints[3], None)
+		return (descriptor, index, secondString, properties)
 
 	def get_Component_read_function(self, string):
 		'''
