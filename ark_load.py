@@ -155,11 +155,18 @@ class ARK_savegame_reader:
 		unpacked_floats = struct.unpack('f'*number_of_trailing_words, d)
 		unpacked_ints = struct.unpack('I'*number_of_trailing_words, d)
 		properties = []
+		values = {}
 		if number_of_trailing_words > 9:
 			properties = self.read_properties_at(unpacked_ints[9], None)
+			values["pos"] = unpacked_floats[2:5]
 		else:
 			properties = self.read_properties_at(unpacked_ints[3], None)
-		return (descriptor, index, secondString, properties)
+		for prop in properties:
+			values[prop["name"]] = prop
+		result = {"descriptor": descriptor, "index": index, "properties": values}
+		if secondString != None:
+			result["secondString"] = secondString
+		return result
 
 	def get_Component_read_function(self, string):
 		'''
@@ -237,20 +244,20 @@ class ARK_savegame_reader:
 			assert not "Not at string begin", (self.f.tell(), )
 
 	def read_ObjectProperty(self, final_element = None):
-		return ('ObjectProperty', self.readUint32(), self.readUint32())
+		return {"type": 'ObjectProperty', "value": (self.readUint32(), self.readUint32())}
 
 	def read_IntProperty(self, name = None):
-		return self.readInt32()
+		return {"type": "IntProperty", "value": self.readInt32()}
 
 	def read_FloatProperty(self, name = None):
-		return ('FloatProperty', self.readFloat())
+		return {"type": 'FloatProperty', "value": self.readFloat()}
 
 
 	def read_DoubleProperty(self, name = None):
-		return self.readDouble()
+		return {"type": "DoubleProperty", "value": self.readDouble()}
 
 	def read_BoolProperty(self, name = None):
-		return self.readBool()
+		return {"type": "BoolProperty", "value": self.readBool()}
 
 	def read_ByteProperty(self, name = None):
 		type_name = self.readString()
@@ -258,35 +265,35 @@ class ARK_savegame_reader:
 			value = self.f.read(1)
 		else:
 			value = self.readString()
-		return ('ByteProperty', value)
+		return {"type": 'ByteProperty', "value": value}
 
 	def read_UInt32Property(self, name = None):
-		return self.readUint32()
+		return {"type": "UInt32Property", "value": self.readUint32()}
 
 	def read_NameProperty(self, name = None):
-		return self.readString()
+		return {"type": "NameProperty", "value": self.readString()}
 
 	def read_Int8Property(self, name = None):
-		return ('Int8Property', self.readInt8())
+		return {"type": 'Int8Property', "value": self.readInt8()}
 
 	def read_Int16Property(self, name = None):
-		return ('Int16Property', self.readInt16())
+		return {"type": 'Int16Property', "value": self.readInt16()}
 	
 	def read_StrProperty(self, name = None):
-		return ('StrProperty', self.readString())
+		return {"type": 'StrProperty', "value": self.readString()}
 
 	def read_UInt16Property(self, name = None):
-		return ('UInt16Property', self.readUint16())
+		return {"type": 'UInt16Property', "value": self.readUint16()}
 
 	def read_UInt64Property(self, name = None):
-		return ('UInt64Property', self.readUint64)
+		return {"type": 'UInt64Property', "value": self.readUint64()}
 
 	def read_ArrayProperty(self, name = None):
 		property_type = self.readString()
 		number_of_entries = self.readUint32()
 		read_property_func = getattr(self, 'read_' + property_type, None)
 		entries = [read_property_func(None) for i in range(number_of_entries)]
-		return ('ArrayProperty', entries)
+		return {"type": 'ArrayProperty', "value": entries}
 
 	def read_StructProperty(self, name = None):
 		name = self.readString()
@@ -294,7 +301,10 @@ class ARK_savegame_reader:
 		while self.peekString() != 'None':
 			name_and_property = self.read_NameAndProperty()
 			entries.append(name_and_property)
-		return ('StructProperty', name, entries)
+		values = {}
+		for entry in entries:
+			values[entry["name"]] = entry
+		return {"type": 'StructProperty', "struct_name": name, "value": values}
 		
 	def read_XPropertyTypeAndValue(self, name, property_type):
 		read_property_func = getattr(self, 'read_' + property_type, None)
@@ -320,7 +330,7 @@ class ARK_savegame_reader:
 			b = self.read_bytes_until_next_string_begin()
 			name = self.readString()
 		if name == 'None':
-			return ('None', None)
+			return {"name": "None", "value": None}
 		else:
 			property_type = self.readString()
 			assert property_type != None, ("Could not read property type of ", name, self.f.tell())
@@ -332,7 +342,11 @@ class ARK_savegame_reader:
 			next_pos = self.f.tell() + size
 			if property_type in ['ArrayProperty', 'ByteProperty']:
 				next_pos += len(self.peekString()) + 1
-			result = (name, b, index, self.read_XPropertyTypeAndValue(name, property_type))
+			result = self.read_XPropertyTypeAndValue(name, property_type)
+			result["index"] = index
+			result["name"] = name
+			if b != None:
+				result["ignored_bytes"] = b
 			self.f.seek(next_pos)
 			return result
 
@@ -403,13 +417,13 @@ class ARK_savegame_reader:
 		dino_status_component_count = 0
 		files = {}
 		for x in components:
-			if len(x) >= 4 and isinstance(x[3], dict) and 'pos' in x[3]:
-				pos = x[3]['pos']
-				name = x[0]
+			if 'pos' in x["properties"]:
+				pos = x['properties']["pos"]
+				name = x["descriptor"]
 				if name not in files:
 					files[name] = open(name+'.txt', 'w')
-				files[name].write('{0}\t{1}\t{2}\n'.format(pos['x'], pos['y'], pos['z']))
-			elif 'CharacterStatusComponent' in x[0]:
+				files[name].write('{0}\t{1}\t{2}\n'.format(*pos))
+			elif 'CharacterStatusComponent' in name:
 				dino_status_component_count += 1
 		for f in files.values():
 			f.close()
