@@ -210,7 +210,7 @@ class ARK_savegame_reader:
 				if self.is_at_string_begin():
 					return result
 				else:
-					print('Not %0: %1'%(lentgh, self.f.read(10)))
+					print('Not %0: %1'%(length, self.f.read(10)))
 					self.f.seek(oldPos)
 			except Exception as e:
 				self.f.seek(oldPos)
