@@ -197,7 +197,7 @@ class ARK_savegame_reader:
 			return (string_c, 'no following string')
 		next_string = self.readString()
 		if next_string and next_string.endswith('_C'):
-			return 'self.read_{2}(self):\n\t\t self.read_regular_indexed({0}, {1})'.format(string_c, length)
+			return 'self.read_{0}(self):\n\t\t self.read_regular_indexed({0}, {1})'.format(string_c, length)
 		return (string_c, 'following string is no _C string:', next_string )
 
 	def try_read_component(self):
