@@ -219,6 +219,8 @@ class ARK_savegame_reader:
 				else:
 					print('Not %0: %1'%(length, self.f.read(10)))
 					self.f.seek(oldPos)
+			except AssertionError:
+				raise
 			except Exception as e:
 				self.f.seek(oldPos)
 				errors.append((length, e))
@@ -407,13 +409,16 @@ class ARK_savegame_reader:
 		for i in range(number_of_entries):
 			loc = self.f.tell()
 			# sometimes the trailing entry does not fit?
-			try:
+			if self.debug:
 				components.append(self.read_Component())
-			except AssertionError as e:
-				raise Exception(e, loc)
-			except Exception as e:
-				print("Could not read component at ", self.f.tell(), ":", e)
-				break
+			else:
+				try:
+					components.append(self.read_Component())
+				except AssertionError as e:
+					raise Exception(e, loc)
+				except Exception as e:
+					print("Could not read component at ", self.f.tell(), ":", e)
+					break
 		dino_status_component_count = 0
 		files = {}
 		for x in components:
