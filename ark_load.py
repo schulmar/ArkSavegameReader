@@ -392,36 +392,41 @@ class ARK_savegame_reader:
 	def readFile(self):
 		self.f.seek(ARK_savegame_reader.START_OFFSET)
 		numberOfInitialEntries = self.readUint32()
-		initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
+		self.initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
 		if self.debug:
 			print('Initial entries: {0}'.format(initialEntries))
 		number_of_regions = self.readUint32()
-		print('{0} regions'.format(number_of_regions))
-		cells = [self.readRegion() for i in range(number_of_regions)]
-		if self.is_at_string_begin():
-			self.readString_equals('Matinee_WorldEnd')
-		else:
-			unknown_number= self.readUint32()
-			print('unknown_number:'+str(unknown_number))
+		if self.debug:
+			print('{0} regions'.format(number_of_regions))
+		self.regions = [self.readRegion() for i in range(number_of_regions)]
+		self.readUint32_equals(0)
 		number_of_entries = self.readUint32()
 		randomBytes = self.f.read(16)
-		components = []
+		self.components = []
 		for i in range(number_of_entries):
 			loc = self.f.tell()
 			# sometimes the trailing entry does not fit?
 			if self.debug:
-				components.append(self.read_Component())
+				self.components.append(self.read_Component())
 			else:
 				try:
-					components.append(self.read_Component())
+					self.components.append(self.read_Component())
 				except AssertionError as e:
 					raise Exception(e, loc)
 				except Exception as e:
 					print("Could not read component at ", self.f.tell(), ":", e)
 					break
 		dino_status_component_count = 0
+
+	def dumpInitialEntries(self):
+		print(self.initialEntries)
+
+	def dumpRegions(self):
+		print(self.regions)
+
+	def dumpCharacterPositions(self):
 		files = {}
-		for x in components:
+		for x in self.components:
 			if 'pos' in x["properties"]:
 				pos = x['properties']["pos"]
 				name = x["descriptor"]
@@ -432,9 +437,9 @@ class ARK_savegame_reader:
 				dino_status_component_count += 1
 		for f in files.values():
 			f.close()
-		for component in components: 
-			print(component)
-		print("#Components:", len(components), ", expected:", number_of_entries)
+
+	def dumpComponents(self):
+		print(self.components)
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
@@ -448,7 +453,16 @@ class ARK_savegame_reader:
 	def print(self, *args, **kwargs):
 		print(sys._getframe(2).f_code.co_firstlineno, ':', self.nesting_depth, self.f.tell(), *args, **kwargs)
 
-
+def readFile(filename, debug = False):
+	if len(sys.argv) > 2 and sys.argv[1] == "debug":
+		filename = sys.argv[2]
+		debug = True
+	reader = ARK_savegame_reader(filename, debug)
+	if filename.endswith('arkprofile'):
+		reader.readLocalPlayerArkProfile()	
+	else:
+		reader.readFile()
+	return reader
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("Call {0} <path-to-savefile>".format(sys.argv[0]))
@@ -456,14 +470,14 @@ if __name__ == "__main__":
 	elif sys.argv[1] == 'doctest':
 		import doctest
 		doctest.testmod()
-	else:
-		filename = sys.argv[1]
-		debug = False
-		if len(sys.argv) > 2 and sys.argv[1] == "debug":
-			filename = sys.argv[2]
-			debug = True
-		reader = ARK_savegame_reader(filename, debug)
-		if filename.endswith('arkprofile'):
-			reader.readLocalPlayerArkProfile()	
+	elif sys.argv[1] == 'dump':
+		if len(sys.argv) < 3:
+			print("Call {0} dump <information> <path-to-file>".format(sys.argv[0]))
+			exit(-1)
 		else:
-			reader.readFile()
+			reader = readFile(sys.argv[3])
+			information = sys.argv[2]
+			getattr(reader, "dump" + information)()
+	else:
+		readFile(sys.argv[1])
+
