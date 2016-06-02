@@ -401,7 +401,7 @@ class ARK_savegame_reader:
 		self.regions = [self.readRegion() for i in range(number_of_regions)]
 		self.readUint32_equals(0)
 		number_of_entries = self.readUint32()
-		randomBytes = self.f.read(16)
+		self.randomBytes = self.f.read(16)
 		self.components = []
 		for i in range(number_of_entries):
 			loc = self.f.tell()
@@ -417,6 +417,9 @@ class ARK_savegame_reader:
 					print("Could not read component at ", self.f.tell(), ":", e)
 					break
 		dino_status_component_count = 0
+
+	def dumpRandomBytes(self):
+		print(self.randomBytes)
 
 	def dumpInitialEntries(self):
 		print(self.initialEntries)
@@ -463,6 +466,7 @@ def readFile(filename, debug = False):
 	else:
 		reader.readFile()
 	return reader
+
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("Call {0} <path-to-savefile>".format(sys.argv[0]))
