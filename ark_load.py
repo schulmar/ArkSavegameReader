@@ -297,18 +297,30 @@ class ARK_savegame_reader:
 		property_type = self.readString()
 		number_of_entries = self.readUint32()
 		read_property_func = getattr(self, 'read_' + property_type, None)
-		entries = [read_property_func(None) for i in range(number_of_entries)]
+		if property_type == "StructProperty":
+			read_property_func = self.read_NameAndProperty
+		entries = []
+		for _ in range(number_of_entries):
+			entries.append(read_property_func(None))
 		return {"type": 'ArrayProperty', "value": entries}
 
 	def read_StructProperty(self, name = None):
 		name = self.readString()
-		entries = []
-		while self.peekString() != 'None':
-			name_and_property = self.read_NameAndProperty()
-			entries.append(name_and_property)
+		assert name != None, (self.f.tell())
+		structReader = getattr(self, "read_StructProperty_" + name, None)
 		values = {}
-		for entry in entries:
-			values[entry["name"]] = entry
+		if structReader:
+			values = structReader()
+		else:
+			entries = []
+			try:
+				while self.peekString() != 'None':
+					name_and_property = self.read_NameAndProperty()
+					entries.append(name_and_property)
+			except:
+				pass
+			for entry in entries:
+				values[entry["name"]] = entry
 		return {"type": 'StructProperty', "struct_name": name, "value": values}
 		
 	def read_XPropertyTypeAndValue(self, name, property_type):
@@ -328,7 +340,7 @@ class ARK_savegame_reader:
 		return b
 
 
-	def read_NameAndProperty(self):
+	def read_NameAndProperty(self, *args):
 		name = self.readString()
 		b = None
 		if name is None:
