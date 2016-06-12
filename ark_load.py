@@ -105,7 +105,7 @@ class ARK_savegame_reader:
 	def readRegion(self):
 		cell_name = self.readString()
 		if self.debug:
-			self.print("Reading region {0}".format(cell_name))
+			self.eprint("Reading region {0}".format(cell_name))
 		number_of_entry_batches = self.readUint32()
 		# so far only encountered 0 and 1
 		assert(number_of_entry_batches <= 1)
@@ -114,7 +114,7 @@ class ARK_savegame_reader:
 			for i in range(number_of_entries):
 				entry = self.readEntry(4)
 				if self.debug:
-					self.print('Read entry of size {0}'.format(len(entry)))
+					self.eprint('Read entry of size {0}'.format(len(entry)))
 		return cell_name
 
 	def readUint32_equals(self, expected_value):
@@ -217,7 +217,7 @@ class ARK_savegame_reader:
 				if self.is_at_string_begin():
 					return result
 				else:
-					print('Not %0: %1'%(length, self.f.read(10)))
+					self.eprint('Not %0: %1'%(length, self.f.read(10)))
 					self.f.seek(oldPos)
 			except AssertionError:
 				raise
@@ -384,7 +384,8 @@ class ARK_savegame_reader:
 		name = self.readString()
 		assert name.endswith('_settings'), ("Setting does not end with _settings", name, self.f.tell())
 		value = self.read_NameAndProperty()
-		self.print(value)
+		if self.debug:
+			self.eprint(value)
 		self.readString_equals('None')
 		self.readUint32_equals(0)
 		return (name, value)
@@ -394,10 +395,10 @@ class ARK_savegame_reader:
 		numberOfInitialEntries = self.readUint32()
 		self.initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
 		if self.debug:
-			print('Initial entries: {0}'.format(initialEntries))
+			self.eprint('Initial entries: {0}'.format(self.initialEntries))
 		number_of_regions = self.readUint32()
 		if self.debug:
-			print('{0} regions'.format(number_of_regions))
+			self.eprint('{0} regions'.format(number_of_regions))
 		self.regions = [self.readRegion() for i in range(number_of_regions)]
 		self.readUint32_equals(0)
 		number_of_entries = self.readUint32()
@@ -414,7 +415,7 @@ class ARK_savegame_reader:
 				except AssertionError as e:
 					raise Exception(e, loc)
 				except Exception as e:
-					print("Could not read component at ", self.f.tell(), ":", e)
+					self.eprint("Could not read component at ", self.f.tell(), ":", e)
 					break
 		dino_status_component_count = 0
 
@@ -455,6 +456,9 @@ class ARK_savegame_reader:
 
 	def print(self, *args, **kwargs):
 		print(sys._getframe(2).f_code.co_firstlineno, ':', self.nesting_depth, self.f.tell(), *args, **kwargs)
+
+	def eprint(selsf, *args, **kwargs):
+	    print(*args, file=sys.stderr, **kwargs)
 
 def readFile(filename, debug = False):
 	if len(sys.argv) > 2 and sys.argv[1] == "debug":
