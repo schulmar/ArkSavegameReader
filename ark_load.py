@@ -490,5 +490,5 @@ if __name__ == "__main__":
 			information = sys.argv[2]
 			getattr(reader, "dump" + information)()
 	else:
-		readFile(sys.argv[1])
+		readFile(sys.argv[1], True)
 
