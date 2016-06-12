@@ -1,7 +1,8 @@
 #!/usr/bin/python3
-import sys
+import sys,traceback
 import struct
 import string
+
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
@@ -241,6 +242,8 @@ class ARK_savegame_reader:
 				except Exception as e:
 					pos = self.f.tell()
 					string = self.get_regular_indexed_parameter(string)
+					for err in e.args[1]:
+						traceback.print_exception(err[1], err[1], err[1].__traceback__)
 					raise Exception("Unknown component", string, e, pos)
 		else:
 			assert not "Not at string begin", (self.f.tell(), )
