@@ -345,8 +345,8 @@ class ARK_savegame_reader:
 				size = 1
 			index = self.readUint32()
 			next_pos = self.f.tell() + size
-			if property_type in ['ArrayProperty', 'ByteProperty']:
-				next_pos += len(self.peekString()) + 1
+			if property_type in ['ArrayProperty', 'ByteProperty', 'StructPropery']:
+				next_pos += 4 + len(self.peekString()) + 1
 			result = self.read_XPropertyTypeAndValue(name, property_type)
 			result["index"] = index
 			result["name"] = name
