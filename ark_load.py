@@ -2,11 +2,18 @@
 import sys,traceback
 import struct
 import string
-
+import json
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
 	WORD_SIZE = 4
+
+	class Encoder(json.JSONEncoder):
+		def default(self, o):
+			if isinstance(o, bytes):
+				return str(o)
+			# Let the base class default method raise the TypeError
+			return json.JSONEncoder.default(self, o)
 
 	def __init__(self, file_name, debug=False):
 		self.f = open(file_name, 'rb') if file_name else None
@@ -458,7 +465,7 @@ class ARK_savegame_reader:
 			f.close()
 
 	def dumpComponents(self):
-		print(self.components)
+		print(json.dumps(self.components, indent=2, cls=self.Encoder))
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
