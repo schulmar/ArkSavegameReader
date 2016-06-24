@@ -4,6 +4,7 @@ import struct
 import string
 import json
 import re
+import base64
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
@@ -165,6 +166,7 @@ class ARK_savegame_reader:
 		unpacked_ints = struct.unpack('I'*number_of_trailing_words, d)
 		properties = []
 		values = {}
+		values['bytes'] = base64.b64encode(d).decode("utf-8")
 		if number_of_trailing_words > 9:
 			properties = self.read_properties_at(unpacked_ints[9], None)
 			values["pos"] = unpacked_floats[2:5]
@@ -275,7 +277,7 @@ class ARK_savegame_reader:
 	def read_ByteProperty(self, name = None):
 		type_name = self.readString()
 		if type_name == 'None':
-			value = self.f.read(1)
+			value = base64.b64encode(self.f.read(1)).decode("utf-8")
 		else:
 			value = self.readString()
 		return {"type": 'ByteProperty', "value": value}
