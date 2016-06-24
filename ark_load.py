@@ -3,6 +3,7 @@ import sys,traceback
 import struct
 import string
 import json
+import re
 
 class ARK_savegame_reader:
 	START_OFFSET = 6
@@ -464,8 +465,13 @@ class ARK_savegame_reader:
 		for f in files.values():
 			f.close()
 
-	def dumpComponents(self):
-		print(json.dumps(self.components, indent=2, cls=self.Encoder))
+	def dumpComponents(self, filter_expression = None):
+		components = self.components
+		if filter_expression != None:
+			regex = re.compile(filter_expression)
+			components = [component for component in self.components if regex.search(component['descriptor'])]
+		print(json.dumps(components, indent=2, cls=self.Encoder))
+
 
 	def readLocalPlayerArkProfile(self):
 		self.readUint32_equals(1)
@@ -508,6 +514,14 @@ if __name__ == "__main__":
 			reader = readFile(sys.argv[3])
 			information = sys.argv[2]
 			getattr(reader, "dump" + information)()
+	elif sys.argv[1] == 'filter':
+		if len(sys.argv) < 4:
+			print("Call {0} filter <filter-expression> <path-to-file>".format(sys.argv[0]))
+			exit(-1)
+		else:
+			reader = readFile(sys.argv[3])
+			filter_expression = sys.argv[2]
+			reader.dumpComponents(filter_expression)
 	else:
 		readFile(sys.argv[1], True)
 
