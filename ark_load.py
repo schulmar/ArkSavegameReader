@@ -169,7 +169,7 @@ class ARK_savegame_reader:
 		values['bytes'] = base64.b64encode(d).decode("utf-8")
 		if number_of_trailing_words > 9:
 			properties = self.read_properties_at(unpacked_ints[9], None)
-			values["pos"] = unpacked_floats[2:5]
+			values["pos"] = unpacked_floats[3:6]
 		else:
 			properties = self.read_properties_at(unpacked_ints[3], None)
 		for prop in properties:
