@@ -170,6 +170,7 @@ class ARK_savegame_reader:
 		if number_of_trailing_words > 9:
 			properties = self.read_properties_at(unpacked_ints[9], None)
 			values["pos"] = unpacked_floats[3:6]
+			values["rot"] = unpacked_floats[6:9]
 		else:
 			properties = self.read_properties_at(unpacked_ints[3], None)
 		for prop in properties:
