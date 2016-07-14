@@ -165,8 +165,9 @@ class ARK_savegame_reader:
 		unpacked_floats = struct.unpack('f'*number_of_trailing_words, d)
 		unpacked_ints = struct.unpack('I'*number_of_trailing_words, d)
 		properties = []
-		values = {}
-		values['bytes'] = base64.b64encode(d).decode("utf-8")
+		values = {
+			'bytes'   : base64.b64encode(d).decode("utf-8"),
+		}
 		if number_of_trailing_words > 9:
 			properties = self.read_properties_at(unpacked_ints[9], None)
 			values["pos"] = unpacked_floats[3:6]
@@ -175,9 +176,8 @@ class ARK_savegame_reader:
 			properties = self.read_properties_at(unpacked_ints[3], None)
 		for prop in properties:
 			values[prop["name"]] = prop
-		result = {"descriptor": descriptor, "index": index, "properties": values}
-		if secondString != None:
-			result["secondString"] = secondString
+		result = {"descriptor": descriptor, "index": index, "properties": values,
+			'strings' : [indexed, secondString] if secondString else [indexed]}
 		return result
 
 	def get_Component_read_function(self, string):
