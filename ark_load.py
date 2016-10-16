@@ -7,7 +7,7 @@ import re
 import base64
 
 class ARK_savegame_reader:
-	START_OFFSET = 6
+	START_OFFSET = {5: 0x6, 6: 0xe}
 	WORD_SIZE = 4
 
 	class Encoder(json.JSONEncoder):
@@ -26,6 +26,7 @@ class ARK_savegame_reader:
 		result = self.f.read(number)
 		self.f.seek(pos)
 		return result 
+
 
 	def readUint32(self):
 		uint_bytes = self.f.read(4)
@@ -416,8 +417,8 @@ class ARK_savegame_reader:
 		self.readUint32_equals(0)
 		return (name, value)
 
-	def readFile(self):
-		self.f.seek(ARK_savegame_reader.START_OFFSET)
+	def readHeader(self, version):
+		self.f.seek(ARK_savegame_reader.START_OFFSET[version])
 		numberOfInitialEntries = self.readUint32()
 		self.initialEntries = [self.readString() for i in range(numberOfInitialEntries)]
 		if self.debug:
@@ -426,6 +427,10 @@ class ARK_savegame_reader:
 		if self.debug:
 			self.eprint('{0} regions'.format(number_of_regions))
 		self.regions = [self.readRegion() for i in range(number_of_regions)]
+
+
+	def readV5(self):
+		self.readHeader(5)
 		self.readUint32_equals(0)
 		number_of_entries = self.readUint32()
 		self.randomBytes = self.f.read(16)
@@ -444,6 +449,37 @@ class ARK_savegame_reader:
 					self.eprint("Could not read component at ", self.f.tell(), ":", e)
 					break
 		dino_status_component_count = 0
+
+	def readV6(self):
+		self.readHeader(6)
+		self.readUint32_equals(0)
+		number_of_entries = self.readUint32()
+		self.randomBytes = self.f.read(16)
+		self.components = []
+		for i in range(number_of_entries):
+			loc = self.f.tell()
+			# sometimes the trailing entry does not fit?
+			if self.debug:
+				self.components.append(self.read_Component())
+			else:
+				try:
+					self.components.append(self.read_Component())
+				except AssertionError as e:
+					raise Exception(e, loc)
+				except Exception as e:
+					self.eprint("Could not read component at ", self.f.tell(), ":", e)
+					break
+		dino_status_component_count = 0
+
+	def readFile(self):
+		version = self.readUint16()
+		assert version in ARK_savegame_reader.START_OFFSET
+		if self.debug:
+			print("Reading file version {0}".format(version))
+		if version == 5:
+			self.readV5()
+		elif version == 6:
+			self.readV6()
 
 	def dumpRandomBytes(self):
 		print(self.randomBytes)
